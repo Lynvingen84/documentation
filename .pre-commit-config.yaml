@@ -8,3 +8,5 @@ repos:
           - --quiet-level=2
           - --skip=yarn.lock
           - --skip=.yarn/*
+          # Norsk tekst - codespell tolker norske ord som skrivefeil
+          - --skip=esphome/*

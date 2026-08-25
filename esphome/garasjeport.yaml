@@ -1,0 +1,291 @@
+# ==================================================
+# GARASJEPORT-KONTROLLER
+#
+# Seeed Studio XIAO ESP32C6
+#
+# Fysisk knapp + RGB status-LED som speiler
+# tilstanden til Dexxo Smart io 800 i Home Assistant.
+#
+# Hemmeligheter (wifi, api-nøkkel, ota-passord)
+# ligger i secrets.yaml - se secrets.yaml.example.
+# ==================================================
+
+substitutions:
+  # Entiteten til garasjeporten i Home Assistant.
+  # Endres kun her hvis entity_id byttes.
+  cover_entity: cover.dexxosmartio800
+
+esphome:
+  name: garasjeport
+  friendly_name: GarasjePort
+
+esp32:
+  variant: esp32c6
+  framework:
+    type: esp-idf
+
+# Loggen går over USB (USB_SERIAL_JTAG) og over API.
+# Dette er standard på ESP32-C6, men settes eksplisitt
+# fordi D6 (GPIO16) også er UART0 TX på denne brikken -
+# uten dette ville logger og blå LED delt samme pinne.
+logger:
+  hardware_uart: USB_SERIAL_JTAG
+
+
+# ==================================================
+# WIFI
+# ==================================================
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  manual_ip:
+    static_ip: 192.168.68.134
+    gateway: 192.168.68.1
+    subnet: 255.255.255.0
+    dns1: 192.168.68.1
+
+
+# ==================================================
+# HOME ASSISTANT API
+# ==================================================
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+  # Mørk LED betyr "ingen forbindelse - vet ikke".
+  on_client_connected:
+    then:
+      - script.execute: update_status_led
+
+  on_client_disconnected:
+    then:
+      - output.turn_off: led_red
+      - output.turn_off: led_green
+      - output.turn_off: led_blue
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+
+# ==================================================
+# RGB STATUS-LED
+#
+# Common cathode:
+# Langeste LED-pin -> motstand -> GND
+#
+# D4 = GPIO22
+# D5 = GPIO23
+# D6 = GPIO16
+#
+# Kun én farge brukes samtidig.
+# ==================================================
+output:
+
+  # RØD
+  - platform: gpio
+    pin: GPIO22
+    id: led_red
+
+  # GRØNN
+  - platform: gpio
+    pin: GPIO23
+    id: led_green
+
+  # BLÅ
+  - platform: gpio
+    pin: GPIO16
+    id: led_blue
+
+
+# ==================================================
+# HENT STATUS FRA DEXXO I HOME ASSISTANT
+# ==================================================
+
+# open / closed / opening / closing
+text_sensor:
+  - platform: homeassistant
+    id: dexxo_state
+    entity_id: ${cover_entity}
+
+    on_value:
+      then:
+        - script.execute: update_status_led
+
+
+# Hent faktisk portposisjon 0-100 %
+sensor:
+  - platform: homeassistant
+    id: dexxo_position
+    entity_id: ${cover_entity}
+    attribute: current_position
+
+    on_value:
+      then:
+        - script.execute: update_status_led
+
+
+# ==================================================
+# STATUS-LED LOGIKK
+#
+# GRØNN = helt lukket
+# RØD   = helt åpen
+# BLÅ   = beveger seg eller står delvis åpen
+#         (inkludert 50 %)
+# MØRK  = ukjent tilstand eller ingen forbindelse
+# ==================================================
+script:
+
+  - id: update_status_led
+    mode: restart
+
+    then:
+      - lambda: |-
+          // Kun én farge er tent om gangen, så slukk alt først.
+          id(led_red).turn_off();
+          id(led_green).turn_off();
+          id(led_blue).turn_off();
+
+          const std::string state = id(dexxo_state).state;
+
+          // Home Assistant rapporterer "open" både for helt åpen
+          // og delvis åpen port. Posisjonen avgjør fargen.
+          const bool delvis_apen = id(dexxo_position).has_state() &&
+                                   id(dexxo_position).state > 1.0f &&
+                                   id(dexxo_position).state < 99.0f;
+
+          if (state == "closed") {
+            id(led_green).turn_on();
+          } else if (state == "opening" || state == "closing") {
+            id(led_blue).turn_on();
+          } else if (state == "open") {
+            if (delvis_apen) {
+              id(led_blue).turn_on();
+            } else {
+              id(led_red).turn_on();
+            }
+          }
+          // "unknown" / "unavailable" -> alle LED forblir av
+
+
+# ==================================================
+# FYSISK KNAPP
+#
+# D1 = GPIO1
+# Bryter mellom D1 og GND
+# ==================================================
+binary_sensor:
+
+  - platform: gpio
+    name: "Garasje knapp"
+    id: garasje_knapp
+
+    pin:
+      number: GPIO1
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+
+    # Debounce for fysisk bryter
+    filters:
+      - delayed_on_off: 20ms
+
+
+    # =================================================
+    # ENKELT- OG DOBBELTTRYKK
+    # =================================================
+    on_multi_click:
+
+
+      # -----------------------------------------------
+      # DOBBELTTRYKK
+      #
+      # Port -> 50 %
+      # -----------------------------------------------
+      - timing:
+          - ON for 30ms to 350ms
+          - OFF for 30ms to 350ms
+          - ON for 30ms to 350ms
+          - OFF for at least 400ms
+
+        then:
+
+          - if:
+              condition:
+                and:
+                  - wifi.connected:
+                  - api.connected:
+
+              then:
+                - logger.log: "DOBBELTTRYKK -> port til 50 prosent"
+
+                - homeassistant.action:
+                    action: cover.set_cover_position
+                    data:
+                      entity_id: ${cover_entity}
+                      position: "50"
+
+              else:
+                - logger.log: "Ingen forbindelse til Home Assistant"
+
+
+      # -----------------------------------------------
+      # ENKELTTRYKK
+      #
+      # Lukket -> åpne helt
+      # Åpen   -> lukk helt
+      #
+      # Hvis porten allerede beveger seg:
+      # gjør ingenting
+      # -----------------------------------------------
+      - timing:
+          - ON for 30ms to 350ms
+          - OFF for at least 400ms
+
+        then:
+
+          - if:
+              condition:
+                and:
+                  - wifi.connected:
+                  - api.connected:
+
+              then:
+
+                # PORT LUKKET -> ÅPNE
+                - if:
+                    condition:
+                      lambda: |-
+                        return id(dexxo_state).state == "closed";
+
+                    then:
+                      - logger.log: "ENKELTTRYKK -> åpner port"
+
+                      - homeassistant.action:
+                          action: cover.open_cover
+                          data:
+                            entity_id: ${cover_entity}
+
+                    else:
+
+                      # PORT ÅPEN ELLER DELVIS ÅPEN -> LUKK
+                      - if:
+                          condition:
+                            lambda: |-
+                              return id(dexxo_state).state == "open";
+
+                          then:
+                            - logger.log: "ENKELTTRYKK -> lukker port"
+
+                            - homeassistant.action:
+                                action: cover.close_cover
+                                data:
+                                  entity_id: ${cover_entity}
+
+                          else:
+                            - logger.log: "Porten beveger seg - kommando ignorert"
+
+              else:
+                - logger.log: "Ingen forbindelse til Home Assistant"

@@ -9,3 +9,8 @@ documentation/repositories
 node_modules
 yarn-error.log
 __pycache__
+
+# ESPHome
+esphome/secrets.yaml
+esphome/.esphome
+esphome/.esphome/
