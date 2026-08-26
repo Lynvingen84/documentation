@@ -9,3 +9,8 @@ documentation/repositories
 node_modules
 yarn-error.log
 __pycache__
+
+# ESPHome secrets - skal aldri committes
+esphome/secrets.yaml
+secrets.yaml
+.esphome/
