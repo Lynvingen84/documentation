@@ -28,9 +28,9 @@ Home Assistant vil be om den nye nøkkelen når enheten kommer opp igjen.
 | Funksjon | Pinne | XIAO-merking |
 | --- | --- | --- |
 | Knapp (mot GND) | GPIO1 | D1 |
-| LED rød | GPIO16 | D6 |
+| LED rød | GPIO22 | D4 |
 | LED grønn | GPIO23 | D5 |
-| LED blå | GPIO22 | D4 |
+| LED blå | GPIO16 | D6 |
 
 LED-en er common cathode: felles pinne går via motstand til GND.
 

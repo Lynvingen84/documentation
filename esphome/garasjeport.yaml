@@ -157,16 +157,20 @@ globals:
 # ==================================================
 # RGB LED
 #
-# ROED   = D6 = GPIO16
+# ROED   = D4 = GPIO22
 # GROENN = D5 = GPIO23
-# BLAA   = D4 = GPIO22
+# BLAA   = D6 = GPIO16
 #
 # Common cathode: felles pinne -> motstand -> GND
+#
+# Merk: GPIO16 er UART0 TX paa ESP32-C6. Det er
+# uproblematisk her fordi logger kjoerer med
+# baud_rate: 0, saa UART-en er slaatt av.
 # ==================================================
 output:
 
   - platform: gpio
-    pin: GPIO16
+    pin: GPIO22
     id: led_red
 
   - platform: gpio
@@ -174,7 +178,7 @@ output:
     id: led_green
 
   - platform: gpio
-    pin: GPIO22
+    pin: GPIO16
     id: led_blue
 
 
@@ -280,16 +284,51 @@ script:
       - script.execute: update_status_led
 
       # Vent til alt er oppe. Ingen fast timeout -
-      # scriptet venter saa lenge som noedvendig.
-      - wait_until:
+      # scriptet venter saa lenge som noedvendig, men
+      # sier hvert tredje sekund hva det venter paa.
+      - while:
           condition:
-            and:
-              - wifi.connected:
-              - api.connected:
-              - binary_sensor.is_off: garasje_knapp
-              - lambda: |-
-                  return id(dexxo_state).has_state() &&
-                         !id(dexxo_state).state.empty();
+            not:
+              and:
+                - wifi.connected:
+                - api.connected:
+                - binary_sensor.is_off: garasje_knapp
+                - lambda: |-
+                    return id(dexxo_state).has_state() &&
+                           !id(dexxo_state).state.empty();
+
+          then:
+            - if:
+                condition:
+                  not:
+                    wifi.connected:
+
+                then:
+                  - logger.log: "VENTER PAA: WiFi"
+
+                else:
+                  - if:
+                      condition:
+                        not:
+                          api.connected:
+
+                      then:
+                        - logger.log: "VENTER PAA: API-klient - er enheten lagt til i Home Assistant med ny krypteringsnoekkel?"
+
+                      else:
+                        - if:
+                            condition:
+                              lambda: |-
+                                return !(id(dexxo_state).has_state() &&
+                                         !id(dexxo_state).state.empty());
+
+                            then:
+                              - logger.log: "VENTER PAA: portstatus fra Home Assistant - sjekk at cover.dexxosmartio800 finnes"
+
+                            else:
+                              - logger.log: "VENTER PAA: at knappen slippes - ikke roer knappen"
+
+            - delay: 3s
 
       # Krev at knappen er stabilt sluppet
       - delay: 3s
