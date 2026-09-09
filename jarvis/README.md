@@ -33,6 +33,16 @@ It is a single self-contained page. Either:
 It ships with a sample brain so the first screen shows something real. Editing anything
 clears the sample marker; **Clear brain** empties it down to a single root node.
 
+## Two ways to run it
+
+| | Where it lives | What it reaches |
+| --- | --- | --- |
+| **Hosted** (`index.html`) | Published as a Claude Artifact | Its own graph, synced across your devices |
+| **Local** (`local/`) | A companion process on your PC or Mac | Your real markdown files, your projects, your machine |
+
+The local version is in [`local/`](local/) and has its own README. It is the one to
+use if you want Jarvis to read your files or run things for you.
+
 ## Claude's tools
 
 While answering, Claude can call three page functions: `add_note`, `connect`, and

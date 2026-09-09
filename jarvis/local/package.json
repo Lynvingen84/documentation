@@ -1,0 +1,12 @@
+{
+  "name": "jarvis-local",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local companion for the Jarvis second-brain console",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "lan": "node server.js --lan"
+  },
+  "engines": { "node": ">=18" }
+}

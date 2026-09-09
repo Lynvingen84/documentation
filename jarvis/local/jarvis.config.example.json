@@ -1,0 +1,10 @@
+{
+  "port": 8787,
+  "brainDir": "~/Documents/Brain",
+  "workspace": "~/Projects",
+  "claudeBin": "claude",
+  "model": "",
+  "access": "read",
+  "permissionMode": "acceptEdits",
+  "askTimeoutMs": 180000
+}
