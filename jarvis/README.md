@@ -39,9 +39,15 @@ clears the sample marker; **Clear brain** empties it down to a single root node.
 | --- | --- | --- |
 | **Hosted** (`index.html`) | Published as a Claude Artifact | Its own graph, synced across your devices |
 | **Local** (`local/`) | A companion process on your PC or Mac | Your real markdown files, your projects, your machine |
+| **MCP** (`mcp/`) | A server registered with the Claude desktop app | The same notes and files, from inside the Claude app |
 
-The local version is in [`local/`](local/) and has its own README. It is the one to
-use if you want Jarvis to read your files or run things for you.
+- [`local/`](local/) — the full console, served from your own machine. Use it if you want
+  the graph, the voice loop and machine access in one window.
+- [`mcp/`](mcp/) — the same brain exposed to the Claude desktop app as tools. Use it if you
+  want to talk to Claude normally and have it reach your notes and files.
+
+Both read the same markdown folder through [`lib/brain.js`](lib/brain.js), so pointing them
+at the same directory gives you one brain.
 
 ## Claude's tools
 

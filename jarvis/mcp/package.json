@@ -1,0 +1,9 @@
+{
+  "name": "jarvis-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MCP server exposing the Jarvis second brain and workspace to the Claude app",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}

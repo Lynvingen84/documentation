@@ -50,7 +50,6 @@ body{
 button,input,textarea,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--ion);outline-offset:2px;border-radius:4px}
 
-/* ---------- shell ---------- */
 #os{
   display:flex;
   flex-direction:column;
@@ -65,7 +64,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 .strip{
   display:flex;
   align-items:center;
-  gap:16px;
+  gap:14px;
   flex-wrap:wrap;
   padding-bottom:10px;
   border-bottom:1px solid var(--line);
@@ -76,7 +75,6 @@ button,input,textarea,select{font:inherit;color:inherit}
   font-weight:700;
   font-size:17px;
   letter-spacing:.28em;
-  color:var(--text);
 }
 .mark span{
   font-family:var(--f-mono);
@@ -96,8 +94,23 @@ button,input,textarea,select{font:inherit;color:inherit}
   text-transform:uppercase;
   color:var(--faint);
   font-variant-numeric:tabular-nums;
+  flex-wrap:wrap;
 }
 .tele i{font-style:normal;color:var(--dim)}
+.tele i.ok{color:var(--live)}
+.tele i.bad{color:var(--halt)}
+
+/* segmented control, used for source and visualiser */
+.seg{display:flex;border:1px solid var(--line-hot);border-radius:2px;overflow:hidden}
+.seg button{
+  background:transparent;border:0;border-right:1px solid var(--line-hot);
+  padding:5px 12px;cursor:pointer;color:var(--faint);
+  font-family:var(--f-mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{color:var(--ion);background:rgba(164,128,255,.12)}
+.seg button[disabled]{opacity:.38;cursor:not-allowed}
+.seg button[aria-pressed="true"][data-source="machine"]{color:var(--live);background:rgba(55,217,154,.13)}
 
 /* ---------- main split ---------- */
 .split{
@@ -107,7 +120,6 @@ button,input,textarea,select{font:inherit;color:inherit}
   flex:1;
   min-height:0;
 }
-
 .frame{
   position:relative;
   background:var(--deep);
@@ -123,9 +135,7 @@ button,input,textarea,select{font:inherit;color:inherit}
   pointer-events:none;
   background:radial-gradient(120% 90% at 78% 8%,rgba(164,128,255,.10),transparent 58%);
 }
-
-/* corner ticks — an instrument bezel, not a card */
-.frame .tick{position:absolute;width:11px;height:11px;border:1px solid var(--line-hot);pointer-events:none;opacity:.9}
+.frame .tick{position:absolute;width:11px;height:11px;border:1px solid var(--line-hot);pointer-events:none}
 .frame .tick.tl{top:6px;left:6px;border-right:0;border-bottom:0}
 .frame .tick.tr{top:6px;right:6px;border-left:0;border-bottom:0}
 .frame .tick.bl{bottom:6px;left:6px;border-right:0;border-top:0}
@@ -135,7 +145,6 @@ button,input,textarea,select{font:inherit;color:inherit}
 #graph.grabbing{cursor:grabbing}
 #graph.linking{cursor:crosshair}
 
-/* graph overlays */
 .gtop{
   position:absolute;top:12px;left:14px;right:14px;
   display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;
@@ -162,7 +171,6 @@ button,input,textarea,select{font:inherit;color:inherit}
 .legend div{display:flex;align-items:center;gap:7px}
 .legend i{width:7px;height:7px;border-radius:50%;display:block}
 
-/* inspector / composer slot */
 .slot{
   position:absolute;right:14px;bottom:14px;z-index:4;
   width:min(310px,calc(100% - 28px));
@@ -178,15 +186,12 @@ button,input,textarea,select{font:inherit;color:inherit}
 .slot header .dot{width:9px;height:9px;border-radius:50%;flex:none}
 .slot header h3{
   margin:0;font-family:var(--f-disp);font-weight:600;font-size:14px;
-  letter-spacing:.02em;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-.slot .grp{
-  font-family:var(--f-mono);font-size:9px;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--faint);
-}
+.slot .grp{font-family:var(--f-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
 .slot textarea,.slot input,.slot select{
   width:100%;background:var(--void);border:1px solid var(--line);
-  border-radius:2px;padding:7px 9px;font-size:12.5px;color:var(--text);
+  border-radius:2px;padding:7px 9px;font-size:12.5px;
 }
 .slot textarea{resize:vertical;min-height:62px;font-family:var(--f-body);line-height:1.55}
 .slot label{
@@ -195,7 +200,6 @@ button,input,textarea,select{font:inherit;color:inherit}
 }
 .slotrow{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
 
-/* ---------- buttons ---------- */
 .btn{
   background:transparent;border:1px solid var(--line-hot);color:var(--dim);
   border-radius:2px;padding:6px 11px;cursor:pointer;
@@ -209,24 +213,14 @@ button,input,textarea,select{font:inherit;color:inherit}
 .btn.go:hover{background:#b795ff;color:#0a0710}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 
-/* ---------- rail ---------- */
 .rail{
   display:flex;flex-direction:column;gap:10px;
-  min-height:0;overflow-y:auto;overscroll-behavior:contain;
-  padding-right:2px;
+  min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:2px;
 }
 .rail::-webkit-scrollbar{width:7px}
 .rail::-webkit-scrollbar-thumb{background:var(--line-hot);border-radius:9px}
-.rail::-webkit-scrollbar-track{background:transparent}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px}
 
-.card{
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:3px;
-  padding:14px;
-}
-
-/* HUD */
 .hud{
   position:relative;display:flex;flex-direction:column;align-items:center;gap:11px;
   padding:16px 14px 14px;
@@ -239,14 +233,8 @@ button,input,textarea,select{font:inherit;color:inherit}
   position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:4px;pointer-events:none;
 }
-.ringlabel b{
-  font-family:var(--f-disp);font-weight:700;font-size:13px;
-  letter-spacing:.3em;text-indent:.3em;color:var(--text);
-}
-.ringlabel span{
-  font-family:var(--f-mono);font-size:9px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--faint);
-}
+.ringlabel b{font-family:var(--f-disp);font-weight:700;font-size:13px;letter-spacing:.3em;text-indent:.3em}
+.ringlabel span{font-family:var(--f-mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .chip{
   display:inline-flex;align-items:center;gap:6px;
@@ -254,27 +242,43 @@ button,input,textarea,select{font:inherit;color:inherit}
   font-family:var(--f-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
 }
 .chip .led{width:6px;height:6px;border-radius:50%;background:var(--faint);flex:none}
-.chip.state .led{background:var(--live);box-shadow:0 0 8px var(--live)}
-.chip.state[data-state="idle"] .led{background:var(--faint);box-shadow:none}
+.chip.state[data-state="listening"] .led{background:var(--live);box-shadow:0 0 8px var(--live)}
 .chip.state[data-state="thinking"] .led{background:var(--warn);box-shadow:0 0 8px var(--warn)}
 .chip.state[data-state="speaking"] .led{background:var(--ion);box-shadow:0 0 8px var(--ion)}
-.chip.state[data-state="off"] .led{background:var(--halt);box-shadow:none}
+.chip.state[data-state="off"] .led{background:var(--halt)}
 .chip.model{color:var(--ion);border-color:rgba(164,128,255,.32);background:rgba(164,128,255,.07)}
-.modes{display:flex;gap:0;border:1px solid var(--line-hot);border-radius:2px;overflow:hidden}
-.modes button{
-  background:transparent;border:0;border-right:1px solid var(--line-hot);
-  padding:5px 12px;cursor:pointer;color:var(--faint);
-  font-family:var(--f-mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
-}
-.modes button:last-child{border-right:0}
-.modes button[aria-pressed="true"]{color:var(--ion);background:rgba(164,128,255,.12)}
-.wake{
-  font-family:var(--f-mono);font-size:10px;color:var(--faint);letter-spacing:.06em;
-  display:flex;align-items:center;gap:6px;
-}
+.wake{font-family:var(--f-mono);font-size:10px;color:var(--faint);margin:0}
 .wake em{font-style:normal;color:var(--dim)}
 
-/* command bar */
+/* machine link card — its own object, not another generic card */
+.link{
+  border:1px solid var(--line);
+  border-left:2px solid var(--faint);
+  border-radius:3px;
+  background:var(--panel);
+  padding:13px 14px;
+}
+.link[data-linked="yes"]{border-left-color:var(--live)}
+.link[data-linked="no"]{border-left-color:var(--warn)}
+.link h4{
+  margin:0 0 7px;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--faint);font-weight:500;
+  display:flex;align-items:center;gap:7px;
+}
+.link h4 i{width:6px;height:6px;border-radius:50%;background:var(--faint);display:block;flex:none}
+.link[data-linked="yes"] h4 i{background:var(--live);box-shadow:0 0 8px var(--live)}
+.link[data-linked="no"] h4 i{background:var(--warn)}
+.link p{margin:0;font-size:12.5px;color:var(--dim);line-height:1.55}
+.link p + p{margin-top:7px}
+.link code{
+  font-family:var(--f-mono);font-size:11.5px;color:var(--text);
+  background:var(--panel-2);border:1px solid var(--line);padding:1px 5px;border-radius:2px;
+}
+.link .tools{
+  margin-top:9px;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.06em;
+  color:var(--faint);word-break:break-word;
+}
+
 .cmd{display:flex;gap:8px;align-items:stretch}
 .mic{
   width:46px;flex:none;border:1px solid var(--line-hot);background:var(--panel-2);
@@ -284,7 +288,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 .mic:hover{color:var(--text);border-color:var(--ion-deep)}
 .mic[aria-pressed="true"]{
   color:var(--live);border-color:rgba(55,217,154,.55);background:rgba(55,217,154,.10);
-  box-shadow:0 0 0 1px rgba(55,217,154,.16),0 0 18px rgba(55,217,154,.18);
+  box-shadow:0 0 18px rgba(55,217,154,.18);
 }
 .mic svg{width:17px;height:17px}
 #cmdInput{
@@ -293,7 +297,6 @@ button,input,textarea,select{font:inherit;color:inherit}
 }
 #cmdInput::placeholder{color:var(--faint)}
 
-/* session card */
 .session header{display:flex;align-items:center;gap:9px;margin-bottom:10px}
 .badge{
   font-family:var(--f-mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
@@ -303,52 +306,40 @@ button,input,textarea,select{font:inherit;color:inherit}
 .badge.err{color:var(--halt);border-color:rgba(255,111,111,.45);background:rgba(255,111,111,.09)}
 .session header h2{
   margin:0;flex:1;min-width:0;font-family:var(--f-disp);font-weight:600;font-size:15px;
-  letter-spacing:.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-.session header button{
-  background:transparent;border:0;color:var(--faint);cursor:pointer;
-  font-size:15px;line-height:1;padding:2px 4px;
-}
+.session header button{background:transparent;border:0;color:var(--faint);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px}
 .session header button:hover{color:var(--halt)}
 .utter{
   font-family:var(--f-mono);font-size:11px;color:var(--dim);
-  border-left:2px solid var(--line-hot);padding-left:9px;margin-bottom:10px;
-  word-break:break-word;
+  border-left:2px solid var(--line-hot);padding-left:9px;margin-bottom:10px;word-break:break-word;
 }
-.answer{font-size:13.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word;color:var(--text)}
+.answer{font-size:13.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word}
 .answer:empty::before{content:"Awaiting a command.";color:var(--faint)}
 .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
 .meta span{
-  font-family:var(--f-mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase;
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;
   color:var(--cyan);border:1px solid rgba(72,216,255,.28);background:rgba(72,216,255,.06);
-  padding:3px 7px;border-radius:2px;
+  padding:3px 7px;border-radius:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 
-/* log */
 .log h4{
   margin:0 0 10px;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--faint);font-weight:500;
 }
-.log ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.log ol{list-style:none;margin:0;padding:0}
 .log li{
   display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;
   padding:8px 0;border-top:1px solid var(--line);cursor:pointer;
 }
 .log li:first-child{border-top:0}
+.log li.empty{display:block;font-size:12px;color:var(--faint);cursor:default}
 .log li:hover .lq{color:var(--text)}
-.log time{
-  font-family:var(--f-mono);font-size:10px;color:var(--faint);
-  font-variant-numeric:tabular-nums;padding-top:1px;
-}
+.log time{font-family:var(--f-mono);font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums;padding-top:1px}
 .lq{font-size:12.5px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .la{font-size:11.5px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.log li.empty{display:block;font-size:12px;color:var(--faint);cursor:default}
 
-/* dock */
-.dock{
-  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
-  padding-top:9px;border-top:1px solid var(--line);
-}
+.dock{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding-top:9px;border-top:1px solid var(--line)}
 .dock .credit{
   margin-left:auto;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.13em;
   text-transform:uppercase;color:var(--faint);
@@ -357,17 +348,18 @@ button,input,textarea,select{font:inherit;color:inherit}
 
 .hint{
   font-family:var(--f-mono);font-size:10.5px;color:var(--warn);
-  letter-spacing:.04em;padding:8px 10px;border:1px solid rgba(255,180,92,.28);
-  background:rgba(255,180,92,.06);border-radius:2px;
+  padding:8px 10px;border:1px solid rgba(255,180,92,.28);
+  background:rgba(255,180,92,.06);border-radius:2px;line-height:1.5;
 }
 .hint[hidden]{display:none!important}
+.hint.bad{color:var(--halt);border-color:rgba(255,111,111,.32);background:rgba(255,111,111,.07)}
 
 @media (max-width:1080px){:root{--rail:340px}}
 @media (max-width:880px){
   #os{height:auto;min-height:0}
   .split{grid-template-columns:minmax(0,1fr)}
   .frame{height:min(56dvh,440px);min-height:300px}
-  .rail{overflow:visible;max-height:none}
+  .rail{overflow:visible}
   .strip .tele{width:100%;margin-left:0;gap:14px}
 }
 @media (prefers-reduced-motion:reduce){
@@ -378,8 +370,12 @@ button,input,textarea,select{font:inherit;color:inherit}
 <div id="os">
   <div class="strip">
     <div class="mark"><b>JARVIS</b><span>Second brain · voice console</span></div>
+    <div class="seg" role="group" aria-label="Brain source">
+      <button type="button" data-source="cloud" aria-pressed="true">Cloud</button>
+      <button type="button" data-source="machine" aria-pressed="false" disabled>This machine</button>
+    </div>
     <div class="tele">
-      <div>Nodes <i id="tNodes">0</i></div>
+      <div>Notes <i id="tNodes">0</i></div>
       <div>Links <i id="tLinks">0</i></div>
       <div>Store <i id="tStore">local</i></div>
       <div>Brain <i id="tBrain">offline</i></div>
@@ -402,28 +398,30 @@ button,input,textarea,select{font:inherit;color:inherit}
       <div class="slot" id="inspector" hidden>
         <header>
           <span class="dot" id="insDot"></span>
-          <h3 id="insTitle">Node</h3>
+          <h3 id="insTitle">Note</h3>
           <span class="grp" id="insGroup"></span>
         </header>
         <label for="insNote">Note</label>
         <textarea id="insNote" placeholder="What matters about this?"></textarea>
         <div class="slotrow">
           <button class="btn" id="insLink" type="button">Link to…</button>
+          <button class="btn" id="insReveal" type="button" hidden>Reveal</button>
           <button class="btn danger" id="insDel" type="button">Delete</button>
           <button class="btn" id="insClose" type="button">Close</button>
         </div>
       </div>
 
       <div class="slot" id="composer" hidden>
-        <header><span class="dot" style="background:var(--ion)"></span><h3>New node</h3></header>
-        <label for="npLabel">Label</label>
+        <header><span class="dot" style="background:var(--ion)"></span><h3>New note</h3></header>
+        <label for="npLabel">Title</label>
         <input id="npLabel" placeholder="e.g. Q4 launch plan" autocomplete="off">
         <label for="npGroup">Cluster</label>
-        <select id="npGroup"></select>
+        <input id="npGroup" list="groupList" placeholder="notes" autocomplete="off">
+        <datalist id="groupList"></datalist>
         <label for="npNote">Note</label>
         <textarea id="npNote" placeholder="Optional detail"></textarea>
         <div class="slotrow">
-          <button class="btn go" id="npAdd" type="button">Add node</button>
+          <button class="btn go" id="npAdd" type="button">Add note</button>
           <button class="btn" id="npCancel" type="button">Cancel</button>
         </div>
       </div>
@@ -439,12 +437,17 @@ button,input,textarea,select{font:inherit;color:inherit}
           <span class="chip state" id="stateChip" data-state="idle"><i class="led"></i><span id="stateText">Idle</span></span>
           <span class="chip model">Claude · on your account</span>
         </div>
-        <div class="modes" role="group" aria-label="Visualiser">
+        <div class="seg" role="group" aria-label="Visualiser">
           <button type="button" data-mode="ring" aria-pressed="true">Ring</button>
           <button type="button" data-mode="cube" aria-pressed="false">Cube</button>
           <button type="button" data-mode="face" aria-pressed="false">Face</button>
         </div>
         <p class="wake">say <em>“Jarvis, …”</em> while listening</p>
+      </div>
+
+      <div class="link" id="linkCard" data-linked="checking">
+        <h4><i></i><span id="linkTitle">Machine link</span></h4>
+        <div id="linkBody"><p>Looking for Jarvis on this machine…</p></div>
       </div>
 
       <div class="hint" id="voiceHint" hidden></div>
@@ -480,7 +483,7 @@ button,input,textarea,select{font:inherit;color:inherit}
   </div>
 
   <div class="dock">
-    <button class="btn" id="dAdd" type="button">+ Node</button>
+    <button class="btn" id="dAdd" type="button">+ Note</button>
     <button class="btn" id="dFit" type="button">Fit view</button>
     <button class="btn on" id="dVoice" type="button" aria-pressed="true">Speak replies</button>
     <button class="btn" id="dWake" type="button" aria-pressed="false">Wake word only</button>
@@ -493,49 +496,37 @@ button,input,textarea,select{font:inherit;color:inherit}
 (function(){
 "use strict";
 
-/* ============================ groups & seed ============================ */
+/* ============================ clusters & seed ============================ */
 
-const GROUPS = {
-  core:     {label:"Core",     color:"#e6ecf7"},
-  content:  {label:"Content",  color:"#f06fa8"},
-  systems:  {label:"Systems",  color:"#a480ff"},
-  research: {label:"Research", color:"#48d8ff"},
-  money:    {label:"Money",    color:"#f0a04b"},
-  clients:  {label:"Clients",  color:"#3ddc97"}
+const NAMED = {
+  core:"#e6ecf7", content:"#f06fa8", systems:"#a480ff", research:"#48d8ff",
+  money:"#f0a04b", clients:"#3ddc97", notes:"#8ea0bd", inbox:"#ffb45c",
+  projects:"#5ee0c8", people:"#ff9fd0"
 };
-const GKEYS = Object.keys(GROUPS);
+const EXTRA = ["#f5d76e","#b6e84f","#ff77c8","#ff6b5e","#7fa8ff","#4fe0d8"];
+function groupColor(g){
+  if(NAMED[g]) return NAMED[g];
+  let h = 0;
+  for(let i=0;i<g.length;i++) h = (h*31 + g.charCodeAt(i)) >>> 0;
+  return EXTRA[h % EXTRA.length];
+}
 
 const SEED_NODES = [
-  ["brain","Second Brain","core",23],
-  ["content","Content engine","content",15],
-  ["scripts","Video scripts","content",10],
-  ["hooks","Hook library","content",9],
-  ["pillars","Content pillars","content",10],
-  ["thumbs","Thumbnail tests","content",8],
-  ["news","Newsletter","content",9],
-  ["shorts","Shorts pipeline","content",8],
-  ["systems","Systems","systems",15],
-  ["publish","Publishing pipeline","systems",10],
-  ["autos","Automation stack","systems",10],
-  ["inbox","Voice-note inbox","systems",9],
-  ["review","Weekly review","systems",9],
-  ["prompts","Prompt library","systems",10],
-  ["cc","Claude Code setup","systems",9],
-  ["research","Research","research",14],
-  ["models","Model notes","research",9],
-  ["teardown","Competitor teardown","research",8],
-  ["queue","Reading queue","research",8],
-  ["field","Field notes","research",8],
-  ["money","Money","money",14],
-  ["dash","Revenue dashboard","money",10],
-  ["pricing","Pricing ladder","money",9],
-  ["stripe","Stripe events","money",8],
-  ["runway","Runway","money",8],
-  ["clients","Clients","clients",14],
-  ["roster","Client roster","clients",9],
-  ["onboard","Onboarding kit","clients",9],
-  ["cases","Case studies","clients",9],
-  ["retainer","Retainer terms","clients",8]
+  ["brain","Second Brain","core",23],["content","Content engine","content",15],
+  ["scripts","Video scripts","content",10],["hooks","Hook library","content",9],
+  ["pillars","Content pillars","content",10],["thumbs","Thumbnail tests","content",8],
+  ["news","Newsletter","content",9],["shorts","Shorts pipeline","content",8],
+  ["systems","Systems","systems",15],["publish","Publishing pipeline","systems",10],
+  ["autos","Automation stack","systems",10],["inbox","Voice-note inbox","systems",9],
+  ["review","Weekly review","systems",9],["prompts","Prompt library","systems",10],
+  ["cc","Claude Code setup","systems",9],["research","Research","research",14],
+  ["models","Model notes","research",9],["teardown","Competitor teardown","research",8],
+  ["queue","Reading queue","research",8],["field","Field notes","research",8],
+  ["money","Money","money",14],["dash","Revenue dashboard","money",10],
+  ["pricing","Pricing ladder","money",9],["stripe","Stripe events","money",8],
+  ["runway","Runway","money",8],["clients","Clients","clients",14],
+  ["roster","Client roster","clients",9],["onboard","Onboarding kit","clients",9],
+  ["cases","Case studies","clients",9],["retainer","Retainer terms","clients",8]
 ];
 const SEED_LINKS = [
   ["brain","content"],["brain","systems"],["brain","research"],["brain","money"],["brain","clients"],
@@ -559,34 +550,169 @@ const SEED_NOTES = {
 
 /* ============================ state ============================ */
 
+const HOST = "host:jarvis";
+const HOST_TOOLS = ["list_notes","read_note","search_brain","write_note","link_notes",
+                    "trash_note","list_files","read_file","reveal","notify"];
+
 const state = {
+  source:"cloud",
   nodes:[], links:[], seeded:true, rev:0,
   selected:null, linkFrom:null,
   view:{scale:1, tx:0, ty:0},
   mode:"ring", level:0, phase:"idle",
   speak:true, wakeOnly:false, listening:false,
-  log:[], turns:[]
+  log:[], turns:[],
+  machine:{status:"checking", tools:[], detail:"", dir:""}
 };
-let sample = null, dbDoc = null, myRev = 0, saveTimer = null;
+let sample = null, mcp = null, dbDoc = null, myRev = 0, saveTimer = null;
 
 const $ = s => document.querySelector(s);
 const el = {
-  graph:$("#graph"), hud:$("#hudCanvas"), legend:$("#legend"),
+  graph:$("#graph"), hud:$("#hudCanvas"), legend:$("#legend"), groupList:$("#groupList"),
   seedChip:$("#seedChip"),
   inspector:$("#inspector"), insTitle:$("#insTitle"), insGroup:$("#insGroup"),
-  insDot:$("#insDot"), insNote:$("#insNote"),
+  insDot:$("#insDot"), insNote:$("#insNote"), insReveal:$("#insReveal"),
   composer:$("#composer"), npLabel:$("#npLabel"), npGroup:$("#npGroup"), npNote:$("#npNote"),
   stateChip:$("#stateChip"), stateText:$("#stateText"), hudState:$("#hudState"),
   cmdInput:$("#cmdInput"), mic:$("#mic"), send:$("#send"),
   sesBadge:$("#sesBadge"), sesTitle:$("#sesTitle"), sesUtter:$("#sesUtter"),
   sesAnswer:$("#sesAnswer"), sesMeta:$("#sesMeta"), sesStop:$("#sesStop"),
   log:$("#log"), voiceHint:$("#voiceHint"),
-  tNodes:$("#tNodes"), tLinks:$("#tLinks"), tStore:$("#tStore"), tBrain:$("#tBrain")
+  tNodes:$("#tNodes"), tLinks:$("#tLinks"), tStore:$("#tStore"), tBrain:$("#tBrain"),
+  linkCard:$("#linkCard"), linkTitle:$("#linkTitle"), linkBody:$("#linkBody"),
+  dClear:$("#dClear")
 };
-
 const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* ============================ brain data ============================ */
+function nodeById(id){ return state.nodes.find(n=>n.id===id) || null; }
+function findNode(q){
+  if(!q) return null;
+  const s = String(q).toLowerCase().trim();
+  return state.nodes.find(n=>n.id.toLowerCase()===s)
+      || state.nodes.find(n=>n.label.toLowerCase()===s)
+      || state.nodes.find(n=>n.label.toLowerCase().includes(s))
+      || null;
+}
+function refreshTelemetry(){
+  el.tNodes.textContent = state.nodes.length;
+  el.tLinks.textContent = state.links.length;
+}
+
+/* ============================ the machine link ============================ */
+/* An MCP server running on the viewer's own device, reached through the
+   Claude desktop app. Outside that app it simply is not there — which is the
+   normal case on a phone or a browser tab, not an error to apologise for. */
+
+const MCP_COPY = {
+  server_not_connected:"Jarvis isn't answering on this machine. Open this page in the Claude desktop app, with the jarvis MCP server running.",
+  not_in_manifest:"That tool isn't part of what this page may call.",
+  needs_reauth:"The machine link needs reconnecting in the Claude app.",
+  selection_required:"Two servers share that name — pick one in the Claude app.",
+  blocked_by_policy:"Your organisation blocks this connector.",
+  approval_required:"That needs approval in the Claude app first.",
+  cancelled:"You declined that one in the Claude app.",
+  server_unavailable:"The machine didn't answer in time. Is the server still running?",
+  rate_limited:"Too many calls at once. Give it a second.",
+  bad_request:"Jarvis sent that tool the wrong arguments.",
+  tool_error:"The machine reported a problem with that.",
+  not_granted:"Access to the machine was declined for this view.",
+  capability_disabled:"Connector access is switched off for this page.",
+  capability_removed:"Connector access was withdrawn from this page.",
+  upstream_error:"The machine errored on that one."
+};
+function mcpCopy(e){
+  const code = e && e.code;
+  if(code === "tool_error" && e.message) return e.message;
+  return MCP_COPY[code] || (e && e.message) || "That call didn't go through.";
+}
+
+/* Read calls may be retried once, and only when the runtime says so. */
+async function mcall(tool, input, opts){
+  if(!mcp) throw {code:"server_not_connected", message:"No machine link."};
+  const options = Object.assign({}, opts);
+  try{
+    const r = await mcp.callTool(HOST, tool, input, options);
+    return r && ("payload" in r) ? r.payload : r;
+  }catch(e){
+    if(e && e.retryable && options.readOnly){
+      await new Promise(r=>setTimeout(r, (e.retryAfterMs || 400) + Math.random()*300));
+      const r = await mcp.callTool(HOST, tool, input, options);
+      return r && ("payload" in r) ? r.payload : r;
+    }
+    throw e;
+  }
+}
+
+function renderLinkCard(){
+  const m = state.machine;
+  const card = el.linkCard;
+  el.linkBody.textContent = "";
+  const p = (html)=>{ const n = document.createElement("p"); n.innerHTML = html; el.linkBody.appendChild(n); return n; };
+
+  if(m.status === "checking"){
+    card.dataset.linked = "checking";
+    el.linkTitle.textContent = "Machine link";
+    p("Looking for Jarvis on this machine…");
+    return;
+  }
+  if(m.status === "linked"){
+    card.dataset.linked = "yes";
+    el.linkTitle.textContent = "Linked to this machine";
+    p("Jarvis can reach your real notes and files through the <code>jarvis</code> server running here.");
+    if(m.dir) p("Brain folder: <code>" + escapeHtml(m.dir) + "</code>");
+    const t = document.createElement("div");
+    t.className = "tools";
+    t.textContent = m.tools.join(" · ");
+    el.linkBody.appendChild(t);
+    return;
+  }
+  card.dataset.linked = "no";
+  el.linkTitle.textContent = "No machine link";
+  p(m.detail || MCP_COPY.server_not_connected);
+  p("Two things have to be true: this page must be published with the <code>jarvis</code> server in its manifest, and you must open it in the Claude desktop app with that server running.");
+  p("Until then it works on its own brain, synced across your devices.");
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+}
+
+async function initMachine(){
+  if(!mcp){
+    state.machine.status = "absent";
+    state.machine.detail = "Connector access isn't available in this view. On a phone or a browser tab that is expected — the machine link only works inside the Claude desktop app.";
+    renderLinkCard();
+    return;
+  }
+  try{
+    const res = await mcp.listTools(HOST);
+    const srv = (res && res.servers || []).find(s => s.server === HOST);
+    if(srv && srv.tools && srv.tools.length){
+      state.machine.status = "linked";
+      state.machine.tools = srv.tools.map(t=>t.name);
+      document.querySelector('[data-source="machine"]').disabled = false;
+      renderLinkCard();
+      /* The machine is the better brain when it is there. */
+      await setSource("machine", true);
+    }else{
+      state.machine.status = "absent";
+      state.machine.detail = MCP_COPY.server_not_connected;
+      renderLinkCard();
+    }
+  }catch(e){
+    state.machine.status = "absent";
+    state.machine.detail = mcpCopy(e);
+    renderLinkCard();
+  }
+}
+
+/* ============================ brain sources ============================ */
+/* Two brains behind one interface: the artifact's own (synced through db) and
+   the folder of markdown files on the linked machine. */
+
+const LS_KEY = "jarvis.brain.v1";
+const LS_LAYOUT = "jarvis.machine.layout.v1";
+
+/* -- cloud -------------------------------------------------------------- */
 
 function seedBrain(){
   state.nodes = SEED_NODES.map(([id,label,group,r],i)=>{
@@ -599,74 +725,13 @@ function seedBrain(){
   state.links = SEED_LINKS.map(([s,t])=>({s,t}));
   state.seeded = true;
 }
-
-function nodeById(id){ return state.nodes.find(n=>n.id===id) || null; }
 function slug(label){
-  const base = label.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,28) || "node";
+  const base = label.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,28) || "note";
   let id = base, i = 2;
   while(nodeById(id)){ id = base+"-"+(i++); }
   return id;
 }
-
-function addNode(label, group, note, connectTo){
-  label = String(label||"").trim().slice(0,60);
-  if(!label) return null;
-  if(!GROUPS[group]) group = "systems";
-  const anchor = connectTo ? (nodeById(connectTo) || findNode(connectTo)) : (state.selected && nodeById(state.selected));
-  const base = anchor || nodeById("brain") || state.nodes[0];
-  const a = Math.random()*Math.PI*2;
-  const n = {
-    id: slug(label), label, group, r: 9, note:String(note||"").slice(0,600),
-    x:(base?base.x:0)+Math.cos(a)*70, y:(base?base.y:0)+Math.sin(a)*70, vx:0, vy:0
-  };
-  state.nodes.push(n);
-  if(base) state.links.push({s:base.id, t:n.id});
-  dirty("add");
-  return n;
-}
-
-function findNode(q){
-  if(!q) return null;
-  const s = String(q).toLowerCase().trim();
-  return state.nodes.find(n=>n.id===s)
-      || state.nodes.find(n=>n.label.toLowerCase()===s)
-      || state.nodes.find(n=>n.label.toLowerCase().includes(s))
-      || null;
-}
-
-function linkNodes(a,b){
-  const A = nodeById(a)||findNode(a), B = nodeById(b)||findNode(b);
-  if(!A||!B||A===B) return false;
-  if(state.links.some(l=>(l.s===A.id&&l.t===B.id)||(l.s===B.id&&l.t===A.id))) return true;
-  state.links.push({s:A.id,t:B.id});
-  dirty("link");
-  return true;
-}
-
-function removeNode(id){
-  state.nodes = state.nodes.filter(n=>n.id!==id);
-  state.links = state.links.filter(l=>l.s!==id && l.t!==id);
-  if(state.selected===id) state.selected = null;
-  dirty("remove");
-}
-
-function dirty(){
-  state.seeded = false;
-  el.seedChip.hidden = true;
-  refreshTelemetry();
-  scheduleSave();
-}
-
-function refreshTelemetry(){
-  el.tNodes.textContent = state.nodes.length;
-  el.tLinks.textContent = state.links.length;
-}
-
-/* ============================ persistence ============================ */
-
-const LS_KEY = "jarvis.brain.v1";
-
-function snapshotData(){
+function cloudSnapshot(){
   return {
     v:1, rev:++myRev, seeded:state.seeded,
     nodes: state.nodes.map(n=>({id:n.id,label:n.label,group:n.group,r:n.r,note:n.note,
@@ -674,37 +739,30 @@ function snapshotData(){
     links: state.links.map(l=>({s:l.s,t:l.t}))
   };
 }
-
 function adopt(data){
   if(!data || !Array.isArray(data.nodes) || !data.nodes.length) return false;
   state.nodes = data.nodes.map(n=>({
-    id:String(n.id), label:String(n.label||n.id), group:GROUPS[n.group]?n.group:"systems",
+    id:String(n.id), label:String(n.label||n.id), group:String(n.group||"notes"),
     r:Number(n.r)||9, note:String(n.note||""),
     x:Number(n.x)||0, y:Number(n.y)||0, vx:0, vy:0
   }));
   const ids = new Set(state.nodes.map(n=>n.id));
   state.links = (data.links||[]).filter(l=>ids.has(l.s)&&ids.has(l.t)).map(l=>({s:l.s,t:l.t}));
   state.seeded = !!data.seeded;
-  el.seedChip.hidden = !state.seeded;
-  refreshTelemetry();
   return true;
 }
-
-function saveLocal(){
-  try{ localStorage.setItem(LS_KEY, JSON.stringify(snapshotData())); }catch(e){}
-}
+function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(cloudSnapshot())); }catch(e){} }
 function loadLocal(){
   try{
     const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return false;
-    return adopt(JSON.parse(raw));
+    return raw ? adopt(JSON.parse(raw)) : false;
   }catch(e){ return false; }
 }
-
 function scheduleSave(){
+  if(state.source !== "cloud") return;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(()=>{
-    const data = snapshotData();
+    const data = cloudSnapshot();
     saveLocal();
     if(dbDoc){
       state.rev = data.rev;
@@ -713,24 +771,194 @@ function scheduleSave(){
   }, 700);
 }
 
+const cloud = {
+  label:"Cloud brain",
+  async load(){
+    if(!state.nodes.length && !loadLocal()){ seedBrain(); settle(180); }
+    el.seedChip.hidden = !state.seeded;
+  },
+  async add(label, group, note, connectTo){
+    const anchor = connectTo ? (nodeById(connectTo) || findNode(connectTo))
+                             : (state.selected && nodeById(state.selected));
+    const base = anchor || nodeById("brain") || state.nodes[0];
+    const a = Math.random()*Math.PI*2;
+    const n = {
+      id:slug(label), label, group:group||"notes", r:9, note:note||"",
+      x:(base?base.x:0)+Math.cos(a)*70, y:(base?base.y:0)+Math.sin(a)*70, vx:0, vy:0
+    };
+    state.nodes.push(n);
+    if(base) state.links.push({s:base.id, t:n.id});
+    dirty();
+    return n;
+  },
+  async link(fromId, toId){
+    const A = nodeById(fromId)||findNode(fromId), B = nodeById(toId)||findNode(toId);
+    if(!A||!B||A===B) return false;
+    if(!state.links.some(l=>(l.s===A.id&&l.t===B.id)||(l.s===B.id&&l.t===A.id))){
+      state.links.push({s:A.id,t:B.id});
+      dirty();
+    }
+    return true;
+  },
+  async remove(id){
+    state.nodes = state.nodes.filter(n=>n.id!==id);
+    state.links = state.links.filter(l=>l.s!==id && l.t!==id);
+    dirty();
+  },
+  async edit(n, note){ n.note = note; dirty(); },
+  async search(q){
+    const s = String(q||"").toLowerCase();
+    return state.nodes.filter(n=>n.label.toLowerCase().includes(s)||(n.note||"").toLowerCase().includes(s))
+      .slice(0,10).map(n=>({title:n.label, group:n.group, note:n.note,
+        linked:state.links.filter(l=>l.s===n.id||l.t===n.id).map(l=>l.s===n.id?l.t:l.s)}));
+  }
+};
+
+function dirty(){
+  state.seeded = false;
+  el.seedChip.hidden = true;
+  refreshTelemetry();
+  scheduleSave();
+}
+
+/* -- machine ------------------------------------------------------------ */
+
+function machineLayout(){
+  try{ return JSON.parse(localStorage.getItem(LS_LAYOUT) || "{}"); }catch(e){ return {}; }
+}
+function saveMachineLayout(){
+  if(state.source !== "machine") return;
+  const out = {};
+  for(const n of state.nodes) out[n.id] = {x:Math.round(n.x), y:Math.round(n.y)};
+  try{ localStorage.setItem(LS_LAYOUT, JSON.stringify(out)); }catch(e){}
+}
+
+const machine = {
+  label:"Machine brain",
+  async load(){
+    const data = await mcall("list_notes", {}, {readOnly:true, cache:{refresh:true}});
+    const notes = (data && data.notes) || [];
+    const layout = machineLayout();
+    const old = new Map(state.nodes.map(n=>[n.id,n]));
+    const degree = {};
+    for(const n of notes) degree[n.title] = (n.linked||[]).length;
+
+    state.nodes = notes.map((n,i)=>{
+      const prev = old.get(n.title), saved = layout[n.title];
+      const a = (i/Math.max(1,notes.length))*Math.PI*2;
+      const r = Math.round(Math.min(23, 8 + (degree[n.title]||0)*1.9));
+      const pos = prev ? {x:prev.x, y:prev.y}
+                : saved ? {x:saved.x, y:saved.y}
+                : {x:Math.cos(a)*(r>15?90:230), y:Math.sin(a)*(r>15?90:230)};
+      return {id:n.title, label:n.title, group:String(n.group||"notes"), r,
+              note:String(n.summary||""), x:pos.x, y:pos.y, vx:0, vy:0};
+    });
+
+    const ids = new Set(state.nodes.map(n=>n.id));
+    const seen = new Set();
+    state.links = [];
+    for(const n of notes){
+      for(const t of (n.linked||[])){
+        if(!ids.has(t) || t === n.title) continue;
+        const key = [n.title,t].sort().join(" ");
+        if(seen.has(key)) continue;
+        seen.add(key);
+        state.links.push({s:n.title, t});
+      }
+    }
+    state.machine.dir = (data && data.dir) || "";
+    state.seeded = false;
+    el.seedChip.hidden = true;
+    renderLinkCard();
+  },
+  async add(label, group, note, connectTo){
+    await mcall("write_note", {title:label, group:group||"notes", body:note||"",
+                               related:connectTo ? [connectTo] : []});
+    await machine.load();
+    return nodeById(label);
+  },
+  async link(fromId, toId){
+    await mcall("link_notes", {from:fromId, to:toId});
+    await machine.load();
+    return true;
+  },
+  async remove(id){
+    await mcall("trash_note", {title:id});
+    await machine.load();
+  },
+  async edit(n, note){
+    await mcall("write_note", {title:n.label, group:n.group, body:note});
+  },
+  async search(q){
+    const r = await mcall("search_brain", {query:q}, {readOnly:true});
+    return (r && r.hits) || [];
+  }
+};
+
+function SRC(){ return state.source === "machine" ? machine : cloud; }
+
+async function setSource(next, quiet){
+  if(state.source === next && quiet !== true) return;
+  const prev = state.source;
+  state.source = next;
+  document.querySelectorAll("[data-source]").forEach(b=>
+    b.setAttribute("aria-pressed", String(b.dataset.source === next)));
+  el.dClear.hidden = next === "machine";
+  el.insReveal.hidden = next !== "machine";
+  state.nodes = []; state.links = [];
+  closeSlots();
+  try{
+    await SRC().load();
+  }catch(e){
+    state.source = prev;
+    document.querySelectorAll("[data-source]").forEach(b=>
+      b.setAttribute("aria-pressed", String(b.dataset.source === prev)));
+    flash(mcpCopy(e), true);
+    await SRC().load();
+  }
+  refreshTelemetry();
+  renderLegend();
+  el.tBrain.textContent = state.source === "machine" ? "machine" : (sample ? "online" : "offline");
+  el.tBrain.className = state.source === "machine" ? "ok" : "";
+  settle(60);
+  fitView();
+}
+
+function renderLegend(){
+  el.legend.textContent = "";
+  el.groupList.textContent = "";
+  const groups = Array.from(new Set(state.nodes.map(n=>n.group))).sort();
+  for(const g of groups.slice(0,10)){
+    const d = document.createElement("div");
+    const i = document.createElement("i");
+    i.style.background = groupColor(g);
+    d.appendChild(i);
+    d.appendChild(document.createTextNode(g));
+    el.legend.appendChild(d);
+    const o = document.createElement("option");
+    o.value = g;
+    el.groupList.appendChild(o);
+  }
+}
+
 /* ============================ force layout ============================ */
 
-function settle(steps){ for(let i=0;i<steps;i++) tickSim(1); }
+const drag = {node:null, panning:false, px:0, py:0, moved:false};
 
+function settle(steps){ for(let i=0;i<steps;i++) tickSim(1); }
 function tickSim(dt){
   const N = state.nodes;
   for(let i=0;i<N.length;i++){
     const a = N[i];
     for(let j=i+1;j<N.length;j++){
       const b = N[j];
-      let dx = b.x-a.x, dy = b.y-a.y;
-      let d2 = dx*dx+dy*dy;
-      if(d2 < 1){ dx = (Math.random()-.5); dy = (Math.random()-.5); d2 = 1; }
+      let dx = b.x-a.x, dy = b.y-a.y, d2 = dx*dx+dy*dy;
+      if(d2 < 1){ dx = Math.random()-.5; dy = Math.random()-.5; d2 = 1; }
       if(d2 > 340000) continue;
       const d = Math.sqrt(d2);
       const f = (2600 + (a.r+b.r)*90) / d2;
-      const fx = (dx/d)*f, fy = (dy/d)*f;
-      a.vx -= fx; a.vy -= fy; b.vx += fx; b.vy += fy;
+      a.vx -= (dx/d)*f; a.vy -= (dy/d)*f;
+      b.vx += (dx/d)*f; b.vy += (dy/d)*f;
     }
   }
   for(const l of state.links){
@@ -738,10 +966,9 @@ function tickSim(dt){
     if(!a||!b) continue;
     const dx = b.x-a.x, dy = b.y-a.y;
     const d = Math.max(1, Math.hypot(dx,dy));
-    const rest = 78 + a.r + b.r;
-    const f = (d-rest)*0.0055;
-    const fx = (dx/d)*f*d, fy = (dy/d)*f*d;
-    a.vx += fx*0.5; a.vy += fy*0.5; b.vx -= fx*0.5; b.vy -= fy*0.5;
+    const f = (d - (78 + a.r + b.r)) * 0.0055;
+    a.vx += dx*f*0.5; a.vy += dy*f*0.5;
+    b.vx -= dx*f*0.5; b.vy -= dy*f*0.5;
   }
   for(const n of state.nodes){
     n.vx -= n.x*0.0016; n.vy -= n.y*0.0016;
@@ -755,18 +982,21 @@ function tickSim(dt){
 /* ============================ graph rendering ============================ */
 
 const gctx = el.graph.getContext("2d");
-let GW = 0, GH = 0, DPR = 1;
+let GW=0, GH=0, DPR=1;
 const glowCache = new Map();
 
 function resizeGraph(){
   const r = el.graph.getBoundingClientRect();
   DPR = Math.min(2, window.devicePixelRatio||1);
   GW = Math.max(1, r.width); GH = Math.max(1, r.height);
-  el.graph.width = Math.round(GW*DPR);
-  el.graph.height = Math.round(GH*DPR);
+  el.graph.width = Math.round(GW*DPR); el.graph.height = Math.round(GH*DPR);
   gctx.setTransform(DPR,0,0,DPR,0,0);
 }
-
+function toRGBA(color,a){
+  const h = color.replace("#","");
+  const n = parseInt(h.length===3 ? h.split("").map(c=>c+c).join("") : h, 16);
+  return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+a+")";
+}
 function glowSprite(color, radius){
   const key = color+"|"+radius;
   if(glowCache.has(key)) return glowCache.get(key);
@@ -775,19 +1005,13 @@ function glowSprite(color, radius){
   c.width = c.height = size;
   const x = c.getContext("2d");
   const g = x.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
-  g.addColorStop(0, hexA(color,.55));
-  g.addColorStop(.35, hexA(color,.16));
-  g.addColorStop(1, hexA(color,0));
+  g.addColorStop(0, toRGBA(color,.55));
+  g.addColorStop(.35, toRGBA(color,.16));
+  g.addColorStop(1, toRGBA(color,0));
   x.fillStyle = g; x.fillRect(0,0,size,size);
   glowCache.set(key,c);
   return c;
 }
-function hexA(hex,a){
-  const h = hex.replace("#","");
-  const n = parseInt(h.length===3 ? h.split("").map(c=>c+c).join("") : h, 16);
-  return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+a+")";
-}
-
 function fitView(){
   if(!state.nodes.length) return;
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
@@ -803,16 +1027,11 @@ function fitView(){
 }
 
 let hoverId = null;
-let pulse = 0;
-
 function drawGraph(t){
   const v = state.view;
   gctx.clearRect(0,0,GW,GH);
-
-  // ambient grid
   gctx.save();
-  gctx.strokeStyle = "rgba(27,34,51,.62)";
-  gctx.lineWidth = 1;
+  gctx.strokeStyle = "rgba(27,34,51,.62)"; gctx.lineWidth = 1;
   const step = 46*v.scale;
   if(step > 14){
     const ox = v.tx % step, oy = v.ty % step;
@@ -824,11 +1043,7 @@ function drawGraph(t){
   gctx.restore();
 
   gctx.save();
-  gctx.translate(v.tx, v.ty);
-  gctx.scale(v.scale, v.scale);
-
-  // links
-  gctx.lineWidth = 1/v.scale;
+  gctx.translate(v.tx, v.ty); gctx.scale(v.scale, v.scale);
   for(const l of state.links){
     const a = nodeById(l.s), b = nodeById(l.t);
     if(!a||!b) continue;
@@ -837,38 +1052,22 @@ function drawGraph(t){
     gctx.lineWidth = (hot?1.7:1)/v.scale;
     gctx.beginPath(); gctx.moveTo(a.x,a.y); gctx.lineTo(b.x,b.y); gctx.stroke();
   }
-
-  // nodes
   for(const n of state.nodes){
-    const color = GROUPS[n.group].color;
-    const sel = n.id===state.selected;
-    const hov = n.id===hoverId;
-    const beat = sel ? 1 + Math.sin(t/260)*0.10 : 1;
-    const r = n.r*beat;
-
+    const color = groupColor(n.group);
+    const sel = n.id===state.selected, hov = n.id===hoverId;
+    const r = n.r * (sel ? 1 + Math.sin(t/260)*0.10 : 1);
     const sp = glowSprite(color, n.r);
-    const sw = sp.width;
-    gctx.drawImage(sp, n.x-sw/2, n.y-sw/2, sw, sw);
-
-    gctx.beginPath();
-    gctx.arc(n.x, n.y, r, 0, Math.PI*2);
-    gctx.fillStyle = hexA(color, sel?.98:.86);
-    gctx.fill();
-
+    gctx.drawImage(sp, n.x-sp.width/2, n.y-sp.width/2, sp.width, sp.width);
+    gctx.beginPath(); gctx.arc(n.x, n.y, r, 0, Math.PI*2);
+    gctx.fillStyle = toRGBA(color, sel?.98:.86); gctx.fill();
     if(sel||hov){
-      gctx.beginPath();
-      gctx.arc(n.x, n.y, r+5+ (sel?Math.sin(t/300)*1.6:0), 0, Math.PI*2);
-      gctx.strokeStyle = hexA(color,.75);
-      gctx.lineWidth = 1.2/v.scale;
-      gctx.stroke();
+      gctx.beginPath(); gctx.arc(n.x, n.y, r+5, 0, Math.PI*2);
+      gctx.strokeStyle = toRGBA(color,.75); gctx.lineWidth = 1.2/v.scale; gctx.stroke();
     }
-
-    const showLabel = n.r >= 9 || hov || sel || v.scale > 1.05;
-    if(showLabel){
+    if(n.r >= 9 || hov || sel || v.scale > 1.05){
       const fs = Math.max(9.5, Math.min(13, 6 + n.r*0.36)) / v.scale;
       gctx.font = (sel?"600 ":"500 ") + fs.toFixed(2) + "px 'IBM Plex Sans',sans-serif";
-      gctx.textAlign = "center";
-      gctx.textBaseline = "top";
+      gctx.textAlign = "center"; gctx.textBaseline = "top";
       gctx.fillStyle = sel ? "#eef2fa" : (n.r>=13 ? "rgba(219,226,238,.9)" : "rgba(150,163,186,.82)");
       gctx.fillText(n.label, n.x, n.y + r + 5);
     }
@@ -883,123 +1082,82 @@ let HS = 186;
 function resizeHud(){
   const r = el.hud.getBoundingClientRect();
   HS = Math.max(120, r.width);
-  el.hud.width = Math.round(HS*DPR);
-  el.hud.height = Math.round(HS*DPR);
+  el.hud.width = Math.round(HS*DPR); el.hud.height = Math.round(HS*DPR);
   hctx.setTransform(DPR,0,0,DPR,0,0);
 }
-
 function accent(){
-  if(state.phase==="thinking") return "#ffb45c";
-  if(state.phase==="listening") return "#37d99a";
-  if(state.phase==="speaking") return "#a480ff";
-  return "#6a7391";
+  return state.phase==="thinking" ? "#ffb45c"
+       : state.phase==="listening" ? "#37d99a"
+       : state.phase==="speaking" ? "#a480ff" : "#6a7391";
 }
-function accentSafe(){
-  const a = accent();
-  return /^#[0-9a-f]{6}$/i.test(a) ? a : "#6a7391";
-}
-
 function drawHud(t){
-  const c = HS/2, lvl = state.level;
-  const col = accentSafe();
+  const c = HS/2, lvl = state.level, col = accent();
   hctx.clearRect(0,0,HS,HS);
-
-  if(state.mode==="cube"){ drawCube(t,c,col,lvl); return; }
-  if(state.mode==="face"){ drawFace(t,c,col,lvl); return; }
-
-  // RING
+  if(state.mode==="cube") return drawCube(t,c,col,lvl);
+  if(state.mode==="face") return drawFace(t,c,col,lvl);
   const arcs = [
-    {r:c-6,  w:1.2, from:0,        speed:1/2600, span:1.5, a:.5},
-    {r:c-15, w:2.6, from:Math.PI,  speed:-1/1700, span:1.05, a:.85},
-    {r:c-26, w:1,   from:.7,       speed:1/3900, span:2.4, a:.35}
+    {r:c-6,  w:1.2, from:0,       speed:1/2600,  span:1.5,  a:.5},
+    {r:c-15, w:2.6, from:Math.PI, speed:-1/1700, span:1.05, a:.85},
+    {r:c-26, w:1,   from:.7,      speed:1/3900,  span:2.4,  a:.35}
   ];
   for(const A of arcs){
-    const start = A.from + t*A.speed*(REDUCED?0:1);
-    hctx.beginPath();
-    hctx.arc(c,c,A.r,start,start+A.span);
-    hctx.strokeStyle = hexA(col, A.a);
-    hctx.lineWidth = A.w;
-    hctx.lineCap = "round";
-    hctx.stroke();
+    const start = A.from + (REDUCED?0:t*A.speed);
+    hctx.beginPath(); hctx.arc(c,c,A.r,start,start+A.span);
+    hctx.strokeStyle = toRGBA(col, A.a); hctx.lineWidth = A.w; hctx.lineCap="round"; hctx.stroke();
   }
-  // static bezel
   hctx.beginPath(); hctx.arc(c,c,c-6,0,Math.PI*2);
   hctx.strokeStyle = "rgba(44,54,84,.85)"; hctx.lineWidth = 1; hctx.stroke();
-
-  // ticks
-  const ticks = 60;
-  for(let i=0;i<ticks;i++){
-    const a = (i/ticks)*Math.PI*2;
-    const on = (i/ticks) < lvl;
-    const r0 = c-33, r1 = c-33 - (on ? 5+lvl*7 : 2.5);
+  for(let i=0;i<60;i++){
+    const a = (i/60)*Math.PI*2, on = (i/60) < lvl;
+    const r0 = c-33, r1 = r0 - (on ? 5+lvl*7 : 2.5);
     hctx.beginPath();
     hctx.moveTo(c+Math.cos(a)*r0, c+Math.sin(a)*r0);
     hctx.lineTo(c+Math.cos(a)*r1, c+Math.sin(a)*r1);
-    hctx.strokeStyle = on ? hexA(col,.9) : "rgba(77,88,109,.5)";
-    hctx.lineWidth = 1.4;
-    hctx.stroke();
+    hctx.strokeStyle = on ? toRGBA(col,.9) : "rgba(77,88,109,.5)";
+    hctx.lineWidth = 1.4; hctx.stroke();
   }
-  // core
   const g = hctx.createRadialGradient(c,c,0,c,c,c-40);
-  g.addColorStop(0, hexA(col,.30+lvl*.30));
-  g.addColorStop(1, hexA(col,0));
-  hctx.fillStyle = g;
-  hctx.beginPath(); hctx.arc(c,c,c-40,0,Math.PI*2); hctx.fill();
+  g.addColorStop(0, toRGBA(col,.30+lvl*.30));
+  g.addColorStop(1, toRGBA(col,0));
+  hctx.fillStyle = g; hctx.beginPath(); hctx.arc(c,c,c-40,0,Math.PI*2); hctx.fill();
 }
-
-const CUBE_V = [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
-const CUBE_E = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+const CV=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
+const CE=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
 function drawCube(t,c,col,lvl){
-  const a = REDUCED ? .6 : t/1800, b = REDUCED ? .4 : t/2600;
-  const S = c*0.46*(1+lvl*0.16);
-  const pts = CUBE_V.map(([x,y,z])=>{
+  const a = REDUCED?.6:t/1800, b = REDUCED?.4:t/2600, S = c*0.46*(1+lvl*0.16);
+  const pts = CV.map(([x,y,z])=>{
     let X = x*Math.cos(a)-z*Math.sin(a), Z = x*Math.sin(a)+z*Math.cos(a);
     let Y = y*Math.cos(b)-Z*Math.sin(b); Z = y*Math.sin(b)+Z*Math.cos(b);
     const p = 2.6/(2.6+Z);
     return [c+X*S*p, c+Y*S*p, p];
   });
-  hctx.lineCap="round";
-  for(const [i,j] of CUBE_E){
-    hctx.beginPath();
-    hctx.moveTo(pts[i][0],pts[i][1]); hctx.lineTo(pts[j][0],pts[j][1]);
-    hctx.strokeStyle = hexA(col, .22 + ((pts[i][2]+pts[j][2])/2-.6)*1.1);
-    hctx.lineWidth = 1.6;
-    hctx.stroke();
+  hctx.lineCap = "round";
+  for(const [i,j] of CE){
+    hctx.beginPath(); hctx.moveTo(pts[i][0],pts[i][1]); hctx.lineTo(pts[j][0],pts[j][1]);
+    hctx.strokeStyle = toRGBA(col, Math.max(.08, .22 + ((pts[i][2]+pts[j][2])/2-.6)*1.1));
+    hctx.lineWidth = 1.6; hctx.stroke();
   }
-  for(const p of pts){
-    hctx.beginPath(); hctx.arc(p[0],p[1],2.2*p[2],0,Math.PI*2);
-    hctx.fillStyle = hexA(col,.9); hctx.fill();
-  }
-  hctx.beginPath(); hctx.arc(c,c,c-6,0,Math.PI*2);
-  hctx.strokeStyle="rgba(44,54,84,.85)"; hctx.lineWidth=1; hctx.stroke();
+  for(const p of pts){ hctx.beginPath(); hctx.arc(p[0],p[1],2.2*p[2],0,Math.PI*2); hctx.fillStyle = toRGBA(col,.9); hctx.fill(); }
+  hctx.beginPath(); hctx.arc(c,c,c-6,0,Math.PI*2); hctx.strokeStyle="rgba(44,54,84,.85)"; hctx.lineWidth=1; hctx.stroke();
 }
-
 function drawFace(t,c,col,lvl){
   const bars = 34, R = c-14;
   for(let i=0;i<bars;i++){
-    const p = i/(bars-1);
-    const x = 14 + p*(HS-28);
-    const env = Math.sin(p*Math.PI);
+    const p = i/(bars-1), x = 14 + p*(HS-28), env = Math.sin(p*Math.PI);
     const n = Math.sin(t/220 + i*0.7) * Math.sin(t/570 + i*0.31);
     const h = (6 + Math.abs(n)*R*0.72*(0.18+lvl)) * env + 3;
     hctx.beginPath();
-    hctx.roundRect ? hctx.roundRect(x-2, c-h, 4, h*2, 2) : hctx.rect(x-2, c-h, 4, h*2);
-    hctx.fillStyle = hexA(col, .32 + env*.5);
-    hctx.fill();
+    if(hctx.roundRect) hctx.roundRect(x-2, c-h, 4, h*2, 2); else hctx.rect(x-2, c-h, 4, h*2);
+    hctx.fillStyle = toRGBA(col, .32 + env*.5); hctx.fill();
   }
   hctx.beginPath(); hctx.moveTo(14,c); hctx.lineTo(HS-14,c);
-  hctx.strokeStyle = hexA(col,.22); hctx.lineWidth = 1; hctx.stroke();
-  hctx.beginPath(); hctx.arc(c,c,c-6,0,Math.PI*2);
-  hctx.strokeStyle="rgba(44,54,84,.85)"; hctx.lineWidth=1; hctx.stroke();
+  hctx.strokeStyle = toRGBA(col,.22); hctx.lineWidth = 1; hctx.stroke();
+  hctx.beginPath(); hctx.arc(c,c,c-6,0,Math.PI*2); hctx.strokeStyle="rgba(44,54,84,.85)"; hctx.lineWidth=1; hctx.stroke();
 }
 
-/* ============================ loop ============================ */
-
-let last = 0;
 function frame(t){
   if(!REDUCED) tickSim(1);
   drawGraph(t);
-  // level decay / synthesis
   const target = state.phase==="thinking" ? .35 + Math.sin(t/300)*.18
                : state.phase==="speaking" ? .55 + Math.sin(t/140)*.30
                : state.phase==="listening" ? state.level*0.94
@@ -1009,33 +1167,26 @@ function frame(t){
   requestAnimationFrame(frame);
 }
 
-/* ============================ graph interaction ============================ */
-
-const drag = {node:null, panning:false, px:0, py:0, moved:false};
+/* ============================ interaction ============================ */
 
 function toWorld(cx, cy){
   const r = el.graph.getBoundingClientRect();
-  return {
-    x:(cx - r.left - state.view.tx)/state.view.scale,
-    y:(cy - r.top  - state.view.ty)/state.view.scale
-  };
+  return {x:(cx-r.left-state.view.tx)/state.view.scale, y:(cy-r.top-state.view.ty)/state.view.scale};
 }
 function pick(cx, cy){
   const p = toWorld(cx,cy);
-  let best = null, bd = 1e9;
+  let best=null, bd=1e9;
   for(const n of state.nodes){
     const d = Math.hypot(n.x-p.x, n.y-p.y);
-    if(d < n.r + 9 && d < bd){ bd = d; best = n; }
+    if(d < n.r+9 && d < bd){ bd = d; best = n; }
   }
   return best;
 }
-
 el.graph.addEventListener("pointerdown", e=>{
   el.graph.setPointerCapture(e.pointerId);
   drag.moved = false;
   const n = pick(e.clientX, e.clientY);
-  if(n){ drag.node = n; }
-  else { drag.panning = true; el.graph.classList.add("grabbing"); }
+  if(n) drag.node = n; else { drag.panning = true; el.graph.classList.add("grabbing"); }
   drag.px = e.clientX; drag.py = e.clientY;
 });
 el.graph.addEventListener("pointermove", e=>{
@@ -1054,10 +1205,10 @@ el.graph.addEventListener("pointermove", e=>{
     if(id !== hoverId){ hoverId = id; el.graph.style.cursor = id ? "pointer" : ""; }
   }
 });
-el.graph.addEventListener("pointerup", e=>{
-  const wasNode = drag.node;
-  if(wasNode && !drag.moved) onNodeClick(wasNode);
-  else if(wasNode) scheduleSave();
+el.graph.addEventListener("pointerup", ()=>{
+  const n = drag.node;
+  if(n && !drag.moved) onNodeClick(n);
+  else if(n){ scheduleSave(); saveMachineLayout(); }
   else if(drag.panning && !drag.moved) closeSlots();
   drag.node = null; drag.panning = false;
   el.graph.classList.remove("grabbing");
@@ -1067,120 +1218,120 @@ el.graph.addEventListener("wheel", e=>{
   e.preventDefault();
   const r = el.graph.getBoundingClientRect();
   const mx = e.clientX-r.left, my = e.clientY-r.top;
-  const k = Math.exp(-e.deltaY*0.0016);
   const s0 = state.view.scale;
-  const s1 = Math.max(.22, Math.min(3.2, s0*k));
+  const s1 = Math.max(.22, Math.min(3.2, s0*Math.exp(-e.deltaY*0.0016)));
   state.view.tx = mx - (mx-state.view.tx)*(s1/s0);
   state.view.ty = my - (my-state.view.ty)*(s1/s0);
   state.view.scale = s1;
 },{passive:false});
 
-function onNodeClick(n){
+async function onNodeClick(n){
   if(state.linkFrom){
     const from = state.linkFrom;
     state.linkFrom = null;
     el.graph.classList.remove("linking");
-    if(from !== n.id && linkNodes(from, n.id)) flash("Linked.");
-    openInspector(n);
-    return;
+    if(from !== n.id){
+      try{
+        await SRC().link(from, n.id);
+        flash("Linked.");
+        refreshTelemetry();
+      }catch(e){ flash(mcpCopy(e), true); }
+    }
   }
-  openInspector(n);
+  const still = nodeById(n.id);
+  if(still) openInspector(still);
 }
-
-/* ============================ slots ============================ */
 
 function closeSlots(){
-  el.inspector.hidden = true;
-  el.composer.hidden = true;
-  state.selected = null;
-  state.linkFrom = null;
+  el.inspector.hidden = true; el.composer.hidden = true;
+  state.selected = null; state.linkFrom = null;
   el.graph.classList.remove("linking");
 }
-
 function openInspector(n){
   state.selected = n.id;
-  el.composer.hidden = true;
-  el.inspector.hidden = false;
+  el.composer.hidden = true; el.inspector.hidden = false;
   el.insTitle.textContent = n.label;
-  el.insGroup.textContent = GROUPS[n.group].label;
-  el.insDot.style.background = GROUPS[n.group].color;
+  el.insGroup.textContent = n.group;
+  el.insDot.style.background = groupColor(n.group);
   el.insNote.value = n.note || "";
 }
+
+let noteTimer = null;
 el.insNote.addEventListener("input", ()=>{
   const n = nodeById(state.selected);
   if(!n) return;
-  n.note = el.insNote.value.slice(0,600);
-  dirty();
+  n.note = el.insNote.value.slice(0,4000);
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(()=>{
+    SRC().edit(n, n.note).catch(e=>flash(mcpCopy(e), true));
+  }, 800);
 });
 $("#insClose").onclick = closeSlots;
-$("#insDel").onclick = ()=>{
-  const n = nodeById(state.selected);
-  if(!n) return;
-  removeNode(n.id);
-  closeSlots();
-  flash("Removed “"+n.label+"”.");
-};
 $("#insLink").onclick = ()=>{
   if(!state.selected) return;
   state.linkFrom = state.selected;
   el.graph.classList.add("linking");
   el.inspector.hidden = true;
-  flash("Pick the node to link to.");
+  flash("Pick the note to link to.");
+};
+$("#insReveal").onclick = ()=>{
+  const n = nodeById(state.selected);
+  if(n) mcall("reveal", {path:n.id + ".md"}).catch(e=>flash(mcpCopy(e), true));
+};
+$("#insDel").onclick = async ()=>{
+  const n = nodeById(state.selected);
+  if(!n) return;
+  const what = state.source === "machine"
+    ? "Move “"+n.label+"” to the brain's .trash folder on your machine?"
+    : "Delete “"+n.label+"”?";
+  if(!confirm(what)) return;
+  try{
+    await SRC().remove(n.id);
+    closeSlots();
+    refreshTelemetry();
+    flash(state.source === "machine" ? "Moved to .trash." : "Removed.");
+  }catch(e){ flash(mcpCopy(e), true); }
 };
 
-GKEYS.forEach(k=>{
-  const o = document.createElement("option");
-  o.value = k; o.textContent = GROUPS[k].label;
-  el.npGroup.appendChild(o);
-});
-el.npGroup.value = "systems";
-
 $("#dAdd").onclick = ()=>{
-  el.inspector.hidden = true;
-  el.composer.hidden = false;
+  el.inspector.hidden = true; el.composer.hidden = false;
   el.npLabel.value = ""; el.npNote.value = "";
+  el.npGroup.value = (nodeById(state.selected) || {}).group || "notes";
   el.npLabel.focus();
 };
 $("#npCancel").onclick = closeSlots;
-$("#npAdd").onclick = ()=>{
-  const n = addNode(el.npLabel.value, el.npGroup.value, el.npNote.value, state.selected);
-  if(!n){ el.npLabel.focus(); return; }
-  closeSlots();
-  openInspector(n);
+$("#npAdd").onclick = async ()=>{
+  const label = el.npLabel.value.trim().slice(0,60);
+  if(!label){ el.npLabel.focus(); return; }
+  const anchor = state.selected;
+  try{
+    const n = await SRC().add(label, (el.npGroup.value||"notes").trim().toLowerCase(), el.npNote.value, anchor);
+    closeSlots();
+    refreshTelemetry();
+    renderLegend();
+    if(n) openInspector(n);
+  }catch(e){ flash(mcpCopy(e), true); }
 };
 el.npLabel.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); $("#npAdd").click(); } });
 
 $("#dFit").onclick = ()=>{ settle(40); fitView(); };
-$("#dClear").onclick = ()=>{
-  if(!confirm("Clear every node and start an empty brain?")) return;
+el.dClear.onclick = ()=>{
+  if(state.source === "machine") return;
+  if(!confirm("Clear every note and start an empty brain?")) return;
   state.nodes = [{id:"brain",label:"Second Brain",group:"core",r:22,note:"",x:0,y:0,vx:0,vy:0}];
   state.links = [];
-  closeSlots();
-  dirty();
-  fitView();
+  closeSlots(); dirty(); renderLegend(); fitView();
   flash("Brain cleared.");
 };
 
-/* ============================ legend ============================ */
-
-GKEYS.forEach(k=>{
-  const d = document.createElement("div");
-  const i = document.createElement("i");
-  i.style.background = GROUPS[k].color;
-  d.appendChild(i);
-  d.appendChild(document.createTextNode(GROUPS[k].label));
-  el.legend.appendChild(d);
+document.querySelectorAll("[data-source]").forEach(b=>{
+  b.onclick = ()=>{ if(!b.disabled) setSource(b.dataset.source); };
 });
 
 /* ============================ status ============================ */
 
-const PHASES = {
-  idle:      ["Idle","standby"],
-  listening: ["Listening","listening"],
-  thinking:  ["Thinking","processing"],
-  speaking:  ["Speaking","speaking"],
-  off:       ["Voice off","no mic"]
-};
+const PHASES = {idle:["Idle","standby"], listening:["Listening","listening"],
+                thinking:["Thinking","working"], speaking:["Speaking","speaking"], off:["Voice off","no mic"]};
 function setPhase(p){
   state.phase = p;
   const [chip, ring] = PHASES[p] || PHASES.idle;
@@ -1188,52 +1339,42 @@ function setPhase(p){
   el.stateText.textContent = chip;
   el.hudState.textContent = ring;
 }
-
 let flashTimer = null, persistentText = "";
-function flash(msg){
+function flash(msg, bad){
   el.voiceHint.textContent = msg;
+  el.voiceHint.classList.toggle("bad", !!bad);
   el.voiceHint.hidden = false;
   clearTimeout(flashTimer);
   flashTimer = setTimeout(()=>{
-    if(persistentText){ el.voiceHint.textContent = persistentText; }
-    else { el.voiceHint.hidden = true; }
-  }, 3600);
+    if(persistentText){ el.voiceHint.textContent = persistentText; el.voiceHint.classList.remove("bad"); }
+    else el.voiceHint.hidden = true;
+  }, 4200);
 }
 function holdHint(msg){
   persistentText = msg;
   clearTimeout(flashTimer);
   el.voiceHint.textContent = msg;
+  el.voiceHint.classList.remove("bad");
   el.voiceHint.hidden = false;
 }
 
 /* ============================ session UI ============================ */
 
-function beginSession(utterance){
-  el.sesBadge.textContent = "Live";
-  el.sesBadge.className = "badge live";
-  el.sesTitle.textContent = titleFor(utterance);
-  el.sesUtter.textContent = utterance;
-  el.sesUtter.hidden = false;
-  el.sesAnswer.textContent = "";
-  el.sesMeta.textContent = "";
+function titleFor(s){ const t = s.replace(/\s+/g," ").trim(); return t.length>44 ? t.slice(0,44)+"…" : t; }
+function beginSession(q){
+  el.sesBadge.textContent = "Live"; el.sesBadge.className = "badge live";
+  el.sesTitle.textContent = titleFor(q);
+  el.sesUtter.textContent = q; el.sesUtter.hidden = false;
+  el.sesAnswer.textContent = ""; el.sesMeta.textContent = "";
   el.sesStop.hidden = false;
 }
-function endSession(ok, utterance, answer, tools){
-  el.sesBadge.textContent = ok ? "Ended" : "Failed";
-  el.sesBadge.className = "badge" + (ok ? "" : " err");
-  el.sesStop.hidden = true;
-  if(tools && tools.length){
-    el.sesMeta.textContent = "";
-    tools.forEach(t=>{ const s = document.createElement("span"); s.textContent = t; el.sesMeta.appendChild(s); });
-  }
-  if(ok) pushLog(utterance, answer);
-}
-function titleFor(s){
-  const t = s.replace(/\s+/g," ").trim();
-  return t.length > 44 ? t.slice(0,44)+"…" : t;
+function addToolChip(text){
+  const s = document.createElement("span");
+  s.textContent = text; s.title = text;
+  el.sesMeta.appendChild(s);
 }
 function pushLog(q,a){
-  state.log.unshift({q, a, at:Date.now()});
+  state.log.unshift({q,a,at:Date.now()});
   state.log = state.log.slice(0,24);
   renderLog();
 }
@@ -1241,19 +1382,17 @@ function renderLog(){
   el.log.textContent = "";
   if(!state.log.length){
     const li = document.createElement("li");
-    li.className = "empty";
-    li.textContent = "Nothing yet. Ask something.";
-    el.log.appendChild(li);
-    return;
+    li.className = "empty"; li.textContent = "Nothing yet. Ask something.";
+    el.log.appendChild(li); return;
   }
-  state.log.forEach((e,i)=>{
+  for(const e of state.log){
     const li = document.createElement("li");
     const time = document.createElement("time");
     const d = new Date(e.at);
     time.textContent = String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
     const body = document.createElement("div");
-    const q = document.createElement("div"); q.className = "lq"; q.textContent = e.q;
-    const a = document.createElement("div"); a.className = "la"; a.textContent = e.a;
+    const q = document.createElement("div"); q.className="lq"; q.textContent = e.q;
+    const a = document.createElement("div"); a.className="la"; a.textContent = e.a;
     body.appendChild(q); body.appendChild(a);
     li.appendChild(time); li.appendChild(body);
     li.onclick = ()=>{
@@ -1263,19 +1402,20 @@ function renderLog(){
       el.sesAnswer.textContent = e.a; el.sesMeta.textContent = "";
     };
     el.log.appendChild(li);
-  });
+  }
 }
 
-/* ============================ speech out ============================ */
+/* ============================ speech ============================ */
 
 const synth = window.speechSynthesis || null;
 function speak(text){
-  if(!state.speak || !synth) return;
+  if(!state.speak || !synth || !text) return;
   try{
     synth.cancel();
-    const u = new SpeechSynthesisUtterance(text.replace(/[*_`#>]/g,"").slice(0,600));
+    const u = new SpeechSynthesisUtterance(text.replace(/[*_`#>]/g,"").slice(0,700));
     u.rate = 1.02; u.pitch = .92;
-    const v = synth.getVoices().find(v=>/en-GB/i.test(v.lang)) || synth.getVoices().find(v=>/^en/i.test(v.lang));
+    const vs = synth.getVoices();
+    const v = vs.find(v=>/en-GB/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang));
     if(v) u.voice = v;
     u.onstart = ()=> setPhase("speaking");
     u.onend = ()=> setPhase(state.listening ? "listening" : "idle");
@@ -1283,11 +1423,8 @@ function speak(text){
   }catch(e){}
 }
 
-/* ============================ speech in ============================ */
-
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
 let rec = null, recWanted = false;
-
 function initRecognition(){
   if(!SR){
     el.mic.disabled = true;
@@ -1296,19 +1433,16 @@ function initRecognition(){
     return;
   }
   rec = new SR();
-  rec.continuous = true;
-  rec.interimResults = true;
+  rec.continuous = true; rec.interimResults = true;
   rec.lang = navigator.language || "en-US";
-
   rec.onstart = ()=>{ state.listening = true; el.mic.setAttribute("aria-pressed","true"); setPhase("listening"); };
   rec.onend = ()=>{
-    state.listening = false;
-    el.mic.setAttribute("aria-pressed","false");
+    state.listening = false; el.mic.setAttribute("aria-pressed","false");
     if(state.phase==="listening") setPhase("idle");
     if(recWanted){ try{ rec.start(); }catch(e){} }
   };
   rec.onerror = ev=>{
-    if(ev.error === "not-allowed" || ev.error === "service-not-allowed"){
+    if(ev.error==="not-allowed" || ev.error==="service-not-allowed"){
       recWanted = false;
       holdHint("Microphone blocked. Allow it in the address bar, or just type below.");
       setPhase("off");
@@ -1318,109 +1452,160 @@ function initRecognition(){
     let interim = "", final = "";
     for(let i=ev.resultIndex;i<ev.results.length;i++){
       const r = ev.results[i];
-      if(r.isFinal) final += r[0].transcript;
-      else interim += r[0].transcript;
+      if(r.isFinal) final += r[0].transcript; else interim += r[0].transcript;
     }
-    if(interim){
-      state.level = Math.min(1, 0.25 + interim.length/48);
-      el.cmdInput.value = interim.trim();
-    }
-    if(final.trim()) handleHeard(final.trim());
+    if(interim){ state.level = Math.min(1, .25 + interim.length/48); el.cmdInput.value = interim.trim(); }
+    if(final.trim()) heard(final.trim());
   };
 }
-
-function handleHeard(text){
+function heard(text){
   el.cmdInput.value = "";
   const wake = /\b(jarvis|jarvís|jervis)\b[\s,:.!-]*/i;
-  const hasWake = wake.test(text);
-  if(state.wakeOnly && !hasWake) return;
-  const cmd = text.replace(wake, "").trim();
-  if(cmd.length < 2) return;
-  ask(cmd);
+  if(state.wakeOnly && !wake.test(text)) return;
+  const cmd = text.replace(wake,"").trim();
+  if(cmd.length >= 2) ask(cmd);
 }
-
-function toggleMic(){
+el.mic.onclick = ()=>{
   if(!rec) return;
-  if(recWanted){
-    recWanted = false;
-    try{ rec.stop(); }catch(e){}
-    setPhase("idle");
-  }else{
-    recWanted = true;
-    try{ rec.start(); }catch(e){}
-  }
-}
-el.mic.onclick = toggleMic;
+  if(recWanted){ recWanted = false; try{ rec.stop(); }catch(e){} setPhase("idle"); }
+  else { recWanted = true; try{ rec.start(); }catch(e){} }
+};
 
 /* ============================ the brain ============================ */
 
-const PERSONA =
-"You are JARVIS, the resident intelligence of this person's second brain. " +
-"Voice: composed, dry, economical — a capable chief of staff, never chirpy, never a disclaimer machine. " +
-"Answers are spoken aloud, so keep them to 1-3 short sentences unless asked for more. No markdown, no bullet lists, no emoji. " +
-"Always reply in the same language the user just used. " +
-"You can change the brain: use add_note to capture something new, connect to relate two existing notes, and search_brain to look deeper. " +
-"After using a tool, say plainly what you did. If the brain has no answer, say so and offer to capture it as a note.";
+function persona(){
+  const machineLine = state.source === "machine"
+    ? "You are wired into this person's actual machine: the notes are real markdown files there, and you can also look at their files. Look before you answer."
+    : "You work from this page's own brain, which syncs across their devices. You cannot see their files from here — if they ask about files, say the machine link isn't active.";
+  return [
+    "You are JARVIS, the resident intelligence of this person's second brain.",
+    "Voice: composed, dry, economical — a capable chief of staff, never chirpy, never a disclaimer machine.",
+    "Answers are spoken aloud, so keep them to 1-3 short sentences unless asked for more. No markdown, no bullet lists, no emoji.",
+    "Always reply in the same language the user just used.",
+    machineLine,
+    "After using a tool, say plainly what you did. If the brain has no answer, say so and offer to capture it as a note."
+  ].join(" ");
+}
 
 function brainContext(){
   const lines = state.nodes.slice(0,80).map(n=>{
-    const links = state.links
-      .filter(l=>l.s===n.id||l.t===n.id)
+    const links = state.links.filter(l=>l.s===n.id||l.t===n.id)
       .map(l=>l.s===n.id?l.t:l.s).slice(0,6).join(", ");
     return "- " + n.label + " [" + n.group + "]" +
       (n.note ? " — " + n.note.slice(0,120) : "") +
       (links ? " (linked: " + links + ")" : "");
   });
-  return "The brain right now (" + state.nodes.length + " notes):\n" + lines.join("\n");
+  return "The brain right now (" + state.nodes.length + " notes, source: " +
+    (state.source === "machine" ? "this machine" : "cloud") + "):\n" + lines.join("\n");
 }
 
-function tools(){
-  const used = [];
-  return {used, list:[
+function buildTools(used){
+  const onMachine = state.source === "machine";
+  const tools = [
     {
       name:"add_note",
-      description:"Capture a new note in the second brain and connect it to an existing note.",
+      description:"Capture a new note in the second brain and link it to an existing note.",
       inputSchema:{type:"object",properties:{
         label:{type:"string",description:"Short title, under 60 characters"},
-        group:{type:"string",enum:GKEYS,description:"Which cluster it belongs to"},
+        group:{type:"string",description:"Cluster it belongs to"},
         detail:{type:"string",description:"One or two sentences of substance"},
-        connect_to:{type:"string",description:"Label or id of an existing note to link it to"}
+        connect_to:{type:"string",description:"Title of an existing note to link it to"}
       },required:["label"]},
-      execute:(inp)=>{
-        const n = addNode(inp.label, inp.group, inp.detail, inp.connect_to);
-        if(!n) return {ok:false, error:"empty label"};
-        used.push("added " + n.label);
-        openInspector(n);
-        return {ok:true, id:n.id, label:n.label, group:n.group};
+      execute: async (inp)=>{
+        try{
+          const n = await SRC().add(String(inp.label||"").slice(0,60),
+                                    inp.group, inp.detail, inp.connect_to);
+          used.push("added " + (n ? n.label : inp.label));
+          refreshTelemetry(); renderLegend();
+          if(n) openInspector(n);
+          return {ok:true, title:(n?n.label:inp.label)};
+        }catch(e){ return {ok:false, error:mcpCopy(e)}; }
       }
     },
     {
       name:"connect",
-      description:"Link two notes that already exist in the brain.",
-      inputSchema:{type:"object",properties:{
-        from:{type:"string"}, to:{type:"string"}
-      },required:["from","to"]},
-      execute:(inp)=>{
-        const ok = linkNodes(inp.from, inp.to);
-        if(ok) used.push("linked " + inp.from + " ↔ " + inp.to);
-        return {ok};
+      description:"Link two notes that already exist.",
+      inputSchema:{type:"object",properties:{from:{type:"string"},to:{type:"string"}},required:["from","to"]},
+      execute: async (inp)=>{
+        try{
+          const ok = await SRC().link(inp.from, inp.to);
+          if(ok) used.push("linked " + inp.from + " ↔ " + inp.to);
+          refreshTelemetry();
+          return {ok:!!ok};
+        }catch(e){ return {ok:false, error:mcpCopy(e)}; }
       }
     },
     {
       name:"search_brain",
-      description:"Search note titles and notes for a term. Returns matches with their detail and links.",
+      description:"Search note titles and bodies for a term.",
       inputSchema:{type:"object",properties:{query:{type:"string"}},required:["query"]},
-      execute:(inp)=>{
-        const q = String(inp.query||"").toLowerCase();
-        const hits = state.nodes.filter(n=>
-          n.label.toLowerCase().includes(q) || (n.note||"").toLowerCase().includes(q)
-        ).slice(0,10).map(n=>({label:n.label, group:n.group, note:n.note,
-          linked:state.links.filter(l=>l.s===n.id||l.t===n.id).map(l=>l.s===n.id?l.t:l.s)}));
-        used.push("searched “" + inp.query + "”");
-        return {count:hits.length, hits};
+      execute: async (inp)=>{
+        try{
+          const hits = await SRC().search(inp.query);
+          used.push("searched “" + inp.query + "”");
+          return {count:hits.length, hits};
+        }catch(e){ return {ok:false, error:mcpCopy(e)}; }
       }
     }
-  ]};
+  ];
+
+  if(onMachine){
+    tools.push(
+      {
+        name:"read_note",
+        description:"Read one note from the machine in full, by title.",
+        inputSchema:{type:"object",properties:{title:{type:"string"}},required:["title"]},
+        execute: async (inp)=>{
+          try{
+            const r = await mcall("read_note", {title:inp.title}, {readOnly:true});
+            used.push("read " + inp.title);
+            return r;
+          }catch(e){ return {ok:false, error:mcpCopy(e)}; }
+        }
+      },
+      {
+        name:"list_files",
+        description:"List files and folders in the user's workspace on this machine.",
+        inputSchema:{type:"object",properties:{
+          dir:{type:"string",description:"Path relative to the workspace. Omit for the root."}
+        }},
+        execute: async (inp)=>{
+          try{
+            const r = await mcall("list_files", {dir:inp.dir || "."}, {readOnly:true});
+            used.push("listed " + (inp.dir || "workspace"));
+            return r;
+          }catch(e){ return {ok:false, error:mcpCopy(e)}; }
+        }
+      },
+      {
+        name:"read_file",
+        description:"Read a text file from the user's workspace on this machine.",
+        inputSchema:{type:"object",properties:{path:{type:"string"}},required:["path"]},
+        execute: async (inp)=>{
+          try{
+            const r = await mcall("read_file", {path:inp.path}, {readOnly:true});
+            used.push("read " + inp.path);
+            return r;
+          }catch(e){ return {ok:false, error:mcpCopy(e)}; }
+        }
+      },
+      {
+        name:"notify",
+        description:"Show a desktop notification on the user's machine.",
+        inputSchema:{type:"object",properties:{
+          title:{type:"string"}, body:{type:"string"}
+        },required:["body"]},
+        execute: async (inp)=>{
+          try{
+            await mcall("notify", {title:inp.title || "Jarvis", body:inp.body});
+            used.push("notified");
+            return {ok:true};
+          }catch(e){ return {ok:false, error:mcpCopy(e)}; }
+        }
+      }
+    );
+  }
+  return tools;
 }
 
 let ctl = null;
@@ -1432,7 +1617,8 @@ async function ask(utterance){
     beginSession(utterance);
     el.sesAnswer.textContent =
       "The Claude connection isn't available in this view, so I can't answer yet. The graph, voice capture and notes all still work.";
-    endSession(false, utterance, "", []);
+    el.sesBadge.textContent = "Failed"; el.sesBadge.className = "badge err";
+    el.sesStop.hidden = true;
     return;
   }
   if(ctl) ctl.abort();
@@ -1443,48 +1629,54 @@ async function ask(utterance){
   el.sesAnswer.textContent = "Thinking…";
   el.send.disabled = true;
 
-  const T = tools();
+  const used = [];
+  const tools = buildTools(used);
   state.turns.push({role:"user", content:utterance});
   let hist = state.turns.slice(-8);
   while(hist.length && hist[0].role !== "user") hist.shift();
-  const head = PERSONA + "\n\n" + brainContext() + "\n\n---\n";
+  const head = persona() + "\n\n" + brainContext() + "\n\n---\n";
   const turns = hist.map((t,i)=> i===0 ? {role:"user", content:head + t.content} : t);
 
-  let first = true;
   try{
     const {text} = await sample(turns, {
       cache:false,
       signal:ctl.signal,
-      tools:T.list,
-      onText:({text})=>{ if(first){ first = false; } el.sesAnswer.textContent = text; }
+      tools,
+      onText:({text})=>{ el.sesAnswer.textContent = text; }
     });
     state.turns.push({role:"assistant", content:text});
     state.turns = state.turns.slice(-10);
     el.sesAnswer.textContent = text;
-    endSession(true, utterance, text, T.used);
+    el.sesBadge.textContent = "Ended"; el.sesBadge.className = "badge";
+    el.sesMeta.textContent = "";
+    used.forEach(addToolChip);
+    pushLog(utterance, text);
     speak(text);
     if(state.phase!=="speaking") setPhase(state.listening ? "listening" : "idle");
   }catch(e){
     const kept = e && e.text ? e.text : "";
-    el.sesAnswer.textContent = kept || errorCopy(e && e.code);
-    endSession(false, utterance, kept, T.used);
+    el.sesAnswer.textContent = kept || sampleCopy(e && e.code);
+    el.sesBadge.textContent = "Failed"; el.sesBadge.className = "badge err";
+    el.sesMeta.textContent = "";
+    used.forEach(addToolChip);
     setPhase(state.listening ? "listening" : "idle");
     if(e && e.code === "not_granted"){
       holdHint("Claude access was declined for this view. Reload the page to be asked again.");
     }
   }finally{
     el.send.disabled = false;
+    el.sesStop.hidden = true;
     ctl = null;
   }
 }
 
-function errorCopy(code){
+function sampleCopy(code){
   switch(code){
-    case "cancelled":     return "Stopped.";
-    case "not_granted":   return "You declined Claude access for this view, so I can't answer. Reload to allow it.";
-    case "rate_limited":  return "Too many questions at once. Give it a few seconds and ask again.";
-    case "unavailable":   return "The connection to Claude dropped. Try again in a moment.";
-    default:              return "That didn't go through. Try again, or rephrase it.";
+    case "cancelled":    return "Stopped.";
+    case "not_granted":  return "You declined Claude access for this view, so I can't answer. Reload to allow it.";
+    case "rate_limited": return "Too many questions at once. Give it a few seconds and ask again.";
+    case "unavailable":  return "The connection to Claude dropped. Try again in a moment.";
+    default:             return "That didn't go through. Try again, or rephrase it.";
   }
 }
 
@@ -1511,47 +1703,20 @@ dWake.onclick = ()=>{
   dWake.setAttribute("aria-pressed", String(state.wakeOnly));
   flash(state.wakeOnly ? "I'll only act on “Jarvis, …”." : "I'll act on anything I hear.");
 };
-
-document.querySelectorAll(".modes button").forEach(b=>{
+document.querySelectorAll("[data-mode]").forEach(b=>{
   b.onclick = ()=>{
     state.mode = b.dataset.mode;
-    document.querySelectorAll(".modes button").forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
+    document.querySelectorAll("[data-mode]").forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
   };
 });
-
 document.addEventListener("keydown", e=>{
   if(e.key === "Escape"){ closeSlots(); if(ctl) ctl.abort(); }
-  if(e.key === "/" && document.activeElement !== el.cmdInput){
-    e.preventDefault(); el.cmdInput.focus();
-  }
+  if(e.key === "/" && document.activeElement !== el.cmdInput){ e.preventDefault(); el.cmdInput.focus(); }
 });
 
 /* ============================ boot ============================ */
 
-function layout(){
-  resizeGraph();
-  resizeHud();
-}
-
-function start(restored){
-  if(restored && restored.brain && adopt(restored.brain)){
-    /* adopted from a hot republish */
-  }else if(!loadLocal()){
-    seedBrain();
-    settle(180);
-  }
-  if(restored && Array.isArray(restored.log)) { state.log = restored.log; }
-  el.seedChip.hidden = !state.seeded;
-  refreshTelemetry();
-  renderLog();
-  layout();
-  settle(60);
-  fitView();
-  setPhase("idle");
-  initRecognition();
-  requestAnimationFrame(frame);
-}
-
+function layout(){ resizeGraph(); resizeHud(); }
 let resizeTimer = null;
 window.addEventListener("resize", ()=>{
   layout();
@@ -1559,10 +1724,41 @@ window.addEventListener("resize", ()=>{
   resizeTimer = setTimeout(fitView, 220);
 });
 
+function start(restored){
+  if(restored && restored.brain && adopt(restored.brain)){ /* carried across a republish */ }
+  else if(!loadLocal()){ seedBrain(); settle(180); }
+  if(restored && Array.isArray(restored.log)) state.log = restored.log;
+  el.seedChip.hidden = !state.seeded;
+  refreshTelemetry();
+  renderLegend();
+  renderLog();
+  renderLinkCard();
+  layout();
+  settle(60);
+  fitView();
+  setPhase("idle");
+  initRecognition();
+  requestAnimationFrame(frame);
+
+  /* No viewer at all (a saved copy, another host): there is nothing to wait for. */
+  if(!(window.claude && typeof window.claude.use === "function")){
+    state.machine.status = "absent";
+    state.machine.detail = "This copy of the page isn't running inside a Claude viewer, so it cannot reach a machine link.";
+    renderLinkCard();
+    return;
+  }
+  /* The viewer answers or it does not; either way, stop saying "looking". */
+  setTimeout(()=>{
+    if(state.machine.status === "checking"){
+      state.machine.status = "absent";
+      state.machine.detail = "No answer about connectors in this view. On a phone or a browser tab that is expected — the machine link only works inside the Claude desktop app.";
+      renderLinkCard();
+    }
+  }, 12000);
+}
+
 if(window.claude && window.claude.hot){
-  try{
-    window.claude.hot.snapshot(()=>({brain:snapshotData(), log:state.log}));
-  }catch(e){}
+  try{ window.claude.hot.snapshot(()=>({brain:cloudSnapshot(), log:state.log})); }catch(e){}
 }
 if(window.claude && window.claude.hot && window.claude.hot.ready){
   window.claude.hot.ready(start);
@@ -1570,12 +1766,23 @@ if(window.claude && window.claude.hot && window.claude.hot.ready){
   start((window.claude && window.claude.hot && window.claude.hot.data) || {});
 }
 
-/* capabilities light up late, never on the first synchronous run */
+/* Capabilities light up late — never during this script's first run. */
 if(window.claude && typeof window.claude.use === "function"){
   window.claude.use("sample").then(s=>{
     sample = s;
-    el.tBrain.textContent = s ? "online" : "offline";
+    if(state.source === "cloud"){
+      el.tBrain.textContent = s ? "online" : "offline";
+    }
   }).catch(()=>{});
+
+  window.claude.use("mcp").then(m=>{
+    mcp = m;
+    return initMachine();
+  }).catch(()=>{
+    state.machine.status = "absent";
+    state.machine.detail = "Could not check for a machine link in this view.";
+    renderLinkCard();
+  });
 
   window.claude.use("db").then(db=>{
     if(!db) return;
@@ -1583,15 +1790,20 @@ if(window.claude && typeof window.claude.use === "function"){
       dbDoc = db.doc("brain/graph");
       el.tStore.textContent = "synced";
       dbDoc.onSnapshot(snap=>{
-        if(!snap.exists){
-          if(!state.seeded) scheduleSave();
-          return;
-        }
+        if(state.source !== "cloud") return;
+        if(!snap.exists){ if(!state.seeded) scheduleSave(); return; }
         const data = snap.data();
         if(!data || snap.metadata.hasPendingWrites) return;
         if(Number(data.rev) === state.rev) return;
         if(drag.node) return;
-        if(adopt(data)){ state.rev = Number(data.rev)||0; myRev = state.rev; fitView(); }
+        if(adopt(data)){
+          state.rev = Number(data.rev)||0;
+          myRev = state.rev;
+          el.seedChip.hidden = !state.seeded;
+          refreshTelemetry();
+          renderLegend();
+          fitView();
+        }
       }, ()=>{ el.tStore.textContent = "local"; dbDoc = null; });
     }catch(e){ el.tStore.textContent = "local"; dbDoc = null; }
   }).catch(()=>{});

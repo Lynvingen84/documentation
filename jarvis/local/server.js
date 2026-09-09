@@ -19,6 +19,9 @@ const os = require("os");
 const crypto = require("crypto");
 const { spawn, execFile } = require("child_process");
 
+const createBrain = require("../lib/brain.js");
+const expandHome = createBrain.expandHome;
+
 /* ------------------------------------------------------------------ config */
 
 const HERE = __dirname;
@@ -60,226 +63,14 @@ function loadConfig() {
   cfg.workspace = path.resolve(expandHome(cfg.workspace));
   return cfg;
 }
-function expandHome(p) {
-  return String(p).replace(/^~(?=$|[/\\])/, os.homedir());
-}
 
 const CFG = loadConfig();
 const TOKEN = CFG.lan ? crypto.randomBytes(9).toString("base64url") : null;
 
 /* ------------------------------------------------------------- brain on disk */
 
-const LAYOUT_FILE = ".jarvis-layout.json";
-const SKIP_DIRS = new Set([".git", ".obsidian", ".trash", "node_modules", ".jarvis"]);
-
-const NAMED_GROUPS = {
-  core: "#e6ecf7", content: "#f06fa8", systems: "#a480ff",
-  research: "#48d8ff", money: "#f0a04b", clients: "#3ddc97",
-  notes: "#8ea0bd", inbox: "#ffb45c", projects: "#5ee0c8", people: "#ff9fd0"
-};
-/* Hues deliberately clear of the named groups above, so an unknown folder
-   never reads as "research" or "clients" at a glance. */
-const EXTRA_COLORS = ["#f5d76e", "#b6e84f", "#ff77c8", "#ff6b5e", "#7fa8ff", "#4fe0d8"];
-function groupColor(g) {
-  if (NAMED_GROUPS[g]) return NAMED_GROUPS[g];
-  let h = 0;
-  for (let i = 0; i < g.length; i++) h = (h * 31 + g.charCodeAt(i)) >>> 0;
-  return EXTRA_COLORS[h % EXTRA_COLORS.length];
-}
-
-async function ensureBrain() {
-  await fsp.mkdir(CFG.brainDir, { recursive: true });
-  const entries = await fsp.readdir(CFG.brainDir);
-  if (!entries.some(e => e.endsWith(".md"))) await seedBrain();
-}
-
-const SEED = [
-  ["Second Brain", "core", "Everything this machine knows, as plain markdown files.\n\nLinks: [[Content engine]], [[Systems]], [[Research]]"],
-  ["Content engine", "content", "One idea in, four formats out. Feeds [[Second Brain]]."],
-  ["Video scripts", "content", "Drafts live here. Related: [[Content engine]], [[Hook library]]."],
-  ["Hook library", "content", "First eight seconds, collected. Related: [[Content engine]]."],
-  ["Systems", "systems", "How the work actually gets done. Part of [[Second Brain]]."],
-  ["Prompt library", "systems", "Reusable prompts, each with the input it expects. Part of [[Systems]]."],
-  ["Weekly review", "systems", "Friday: close loops, promote notes, prune the graph. Part of [[Systems]]."],
-  ["Research", "research", "Open questions and reading. Part of [[Second Brain]]."],
-  ["Model notes", "research", "What each model is good and bad at. Part of [[Research]], used by [[Prompt library]]."]
-];
-
-async function seedBrain() {
-  for (const [label, group, body] of SEED) {
-    const p = path.join(CFG.brainDir, sanitizeName(label) + ".md");
-    const fm = "---\ngroup: " + group + "\n---\n\n# " + label + "\n\n" + body + "\n";
-    await fsp.writeFile(p, fm, "utf8");
-  }
-  console.log("  seeded " + SEED.length + " example notes in " + CFG.brainDir);
-}
-
-function sanitizeName(label) {
-  return String(label).replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, " ").trim().slice(0, 80) || "note";
-}
-
-function parseFrontmatter(text) {
-  const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(text);
-  if (!m) return { data: {}, body: text };
-  const data = {};
-  for (const line of m[1].split(/\r?\n/)) {
-    const kv = /^([A-Za-z0-9_-]+)\s*:\s*(.*)$/.exec(line);
-    if (!kv) continue;
-    let v = kv[2].trim();
-    if (/^\[.*\]$/.test(v)) {
-      v = v.slice(1, -1).split(",").map(s => s.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
-    } else {
-      v = v.replace(/^["']|["']$/g, "");
-      if (v !== "" && !isNaN(Number(v))) v = Number(v);
-    }
-    data[kv[1]] = v;
-  }
-  return { data, body: text.slice(m[0].length) };
-}
-
-async function walk(dir, base, out) {
-  let entries;
-  try { entries = await fsp.readdir(dir, { withFileTypes: true }); }
-  catch (e) { return out; }
-  for (const e of entries) {
-    if (e.name.startsWith(".") || SKIP_DIRS.has(e.name)) continue;
-    const full = path.join(dir, e.name);
-    if (e.isDirectory()) await walk(full, base, out);
-    else if (e.name.toLowerCase().endsWith(".md")) out.push(full);
-  }
-  return out;
-}
-
-async function readLayout() {
-  try { return JSON.parse(await fsp.readFile(path.join(CFG.brainDir, LAYOUT_FILE), "utf8")); }
-  catch (e) { return {}; }
-}
-async function writeLayout(layout) {
-  await fsp.writeFile(path.join(CFG.brainDir, LAYOUT_FILE), JSON.stringify(layout, null, 1), "utf8");
-}
-
-async function readBrain() {
-  await fsp.mkdir(CFG.brainDir, { recursive: true });
-  const files = await walk(CFG.brainDir, CFG.brainDir, []);
-  const layout = await readLayout();
-  const nodes = [];
-  const byKey = new Map();
-
-  for (const file of files) {
-    let raw;
-    try { raw = await fsp.readFile(file, "utf8"); } catch (e) { continue; }
-    const { data, body } = parseFrontmatter(raw);
-    const rel = path.relative(CFG.brainDir, file);
-    const id = rel.replace(/\.md$/i, "").split(path.sep).join("/");
-    const base = path.basename(id);
-    const heading = /^#\s+(.+)$/m.exec(body);
-    const label = String(data.label || (heading ? heading[1] : base)).trim().slice(0, 70);
-    const folder = rel.includes(path.sep) ? rel.split(path.sep)[0].toLowerCase() : "";
-    const group = String(data.group || folder || "notes").toLowerCase();
-
-    const wikis = [];
-    const re = /\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g;
-    let mm;
-    while ((mm = re.exec(body))) wikis.push(mm[1].trim());
-    const fmLinks = Array.isArray(data.links) ? data.links : (data.links ? [String(data.links)] : []);
-
-    const note = body.replace(/^#\s+.+$/m, "").replace(/\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g, "$1").trim();
-
-    const n = {
-      id, label, group, file,
-      note: note.slice(0, 4000),
-      targets: wikis.concat(fmLinks),
-      x: 0, y: 0, r: 9,
-      mtime: 0
-    };
-    try { n.mtime = (await fsp.stat(file)).mtimeMs; } catch (e) {}
-    nodes.push(n);
-    byKey.set(id.toLowerCase(), n);
-    byKey.set(base.toLowerCase(), n);
-    byKey.set(label.toLowerCase(), n);
-  }
-
-  const links = [];
-  const seen = new Set();
-  for (const n of nodes) {
-    for (const t of n.targets) {
-      const hit = byKey.get(String(t).toLowerCase().replace(/\.md$/i, ""));
-      if (!hit || hit.id === n.id) continue;
-      const key = [n.id, hit.id].sort().join("\u0000");
-      if (seen.has(key)) continue;
-      seen.add(key);
-      links.push({ s: n.id, t: hit.id });
-    }
-    delete n.targets;
-  }
-
-  const degree = new Map();
-  for (const l of links) {
-    degree.set(l.s, (degree.get(l.s) || 0) + 1);
-    degree.set(l.t, (degree.get(l.t) || 0) + 1);
-  }
-
-  const N = Math.max(1, nodes.length);
-  nodes.forEach((n, i) => {
-    n.r = Math.round(Math.min(23, 8 + (degree.get(n.id) || 0) * 1.9));
-    const saved = layout[n.id];
-    if (saved && typeof saved.x === "number") { n.x = saved.x; n.y = saved.y; }
-    else {
-      const a = (i / N) * Math.PI * 2;
-      const ring = n.r > 15 ? 90 : 230;
-      n.x = Math.round(Math.cos(a) * ring);
-      n.y = Math.round(Math.sin(a) * ring);
-    }
-    n.color = groupColor(n.group);
-  });
-
-  const groups = {};
-  for (const n of nodes) groups[n.group] = n.color;
-  return { nodes, links, groups, dir: CFG.brainDir };
-}
-
-async function writeNote({ id, label, group, note, connectTo }) {
-  label = sanitizeName(label || id || "");
-  if (!label) throw new Error("A note needs a label.");
-  const rel = id ? id + ".md" : label + ".md";
-  const file = safeJoin(CFG.brainDir, rel);
-  let links = [];
-  if (connectTo) {
-    const brain = await readBrain();
-    const hit = brain.nodes.find(n => n.id.toLowerCase() === String(connectTo).toLowerCase())
-             || brain.nodes.find(n => n.label.toLowerCase() === String(connectTo).toLowerCase());
-    if (hit) links.push(hit.label);
-  }
-  const fm = "---\ngroup: " + (group || "notes") + "\n---\n\n# " + label + "\n\n" +
-             (note || "") + (links.length ? "\n\nRelated: " + links.map(l => "[[" + l + "]]").join(", ") : "") + "\n";
-  await fsp.mkdir(path.dirname(file), { recursive: true });
-  await fsp.writeFile(file, fm, "utf8");
-  return path.relative(CFG.brainDir, file).replace(/\.md$/i, "").split(path.sep).join("/");
-}
-
-async function appendLink(fromId, toLabel) {
-  const file = safeJoin(CFG.brainDir, fromId + ".md");
-  let raw = await fsp.readFile(file, "utf8");
-  if (raw.includes("[[" + toLabel + "]]")) return true;
-  raw = raw.replace(/\s*$/, "") + "\n\nRelated: [[" + toLabel + "]]\n";
-  await fsp.writeFile(file, raw, "utf8");
-  return true;
-}
-
-async function trashNote(id) {
-  const file = safeJoin(CFG.brainDir, id + ".md");
-  const trash = path.join(CFG.brainDir, ".trash");
-  await fsp.mkdir(trash, { recursive: true });
-  const dest = path.join(trash, Date.now() + "-" + path.basename(file));
-  await fsp.rename(file, dest);
-  return dest;
-}
-
-function safeJoin(root, rel) {
-  const p = path.resolve(root, rel);
-  if (p !== root && !p.startsWith(root + path.sep)) throw new Error("Path escapes the brain directory.");
-  return p;
-}
+/* Shared with the MCP server so the two can never disagree about the format. */
+const brain = createBrain(CFG.brainDir);
 
 /* --------------------------------------------------------------- the brain */
 
@@ -455,8 +246,8 @@ function broadcast(obj) {
 let watchTimer = null;
 function watchBrain() {
   try {
-    fs.watch(CFG.brainDir, { recursive: true }, (evt, name) => {
-      if (name && (String(name).includes(LAYOUT_FILE) || String(name).includes(".trash"))) return;
+    fs.watch(brain.dir, { recursive: true }, (evt, name) => {
+      if (name && (String(name).includes(createBrain.LAYOUT_FILE) || String(name).includes(".trash"))) return;
       clearTimeout(watchTimer);
       watchTimer = setTimeout(() => broadcast({ type: "brain-changed" }), 260);
     });
@@ -502,9 +293,9 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (p === "/api/state") {
-      const brain = await readBrain();
+      const graph = await brain.read();
       return send(res, 200, {
-        brain,
+        brain: graph,
         config: {
           brainDir: CFG.brainDir,
           workspace: CFG.workspace,
@@ -531,28 +322,28 @@ const server = http.createServer(async (req, res) => {
 
     if (p === "/api/note" && req.method === "POST") {
       const b = await readBody(req);
-      const id = await writeNote(b);
+      const { id } = await brain.writeNote(b);
       broadcast({ type: "brain-changed" });
       return send(res, 200, { ok: true, id });
     }
 
     if (p === "/api/note" && req.method === "DELETE") {
       const b = await readBody(req);
-      await trashNote(b.id);
+      await brain.trashNote(b.id);
       broadcast({ type: "brain-changed" });
       return send(res, 200, { ok: true });
     }
 
     if (p === "/api/link" && req.method === "POST") {
       const b = await readBody(req);
-      await appendLink(b.from, b.toLabel);
+      await brain.appendLink(b.from, b.toLabel);
       broadcast({ type: "brain-changed" });
       return send(res, 200, { ok: true });
     }
 
     if (p === "/api/layout" && req.method === "POST") {
       const b = await readBody(req);
-      await writeLayout(b.layout || {});
+      await brain.writeLayout(b.layout || {});
       return send(res, 200, { ok: true });
     }
 
@@ -609,7 +400,8 @@ function localAddresses() {
 }
 
 (async () => {
-  await ensureBrain();
+  const seeded = await brain.ensure();
+  if (seeded) console.log("  seeded " + seeded + " example notes in " + brain.dir);
   watchBrain();
 
   const hostBind = CFG.lan ? "0.0.0.0" : "127.0.0.1";
