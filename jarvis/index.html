@@ -1,4 +1,4 @@
-<title>Jarvis Second Brain</title>
+<title>Jarvis Førstehjerne</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -315,7 +315,7 @@ button,input,textarea,select{font:inherit;color:inherit}
   border-left:2px solid var(--line-hot);padding-left:9px;margin-bottom:10px;word-break:break-word;
 }
 .answer{font-size:13.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word}
-.answer:empty::before{content:"Awaiting a command.";color:var(--faint)}
+.answer:empty::before{content:"Venter på en kommando.";color:var(--faint)}
 .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
 .meta span{
   font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;
@@ -369,28 +369,28 @@ button,input,textarea,select{font:inherit;color:inherit}
 
 <div id="os">
   <div class="strip">
-    <div class="mark"><b>JARVIS</b><span>Second brain · voice console</span></div>
-    <div class="seg" role="group" aria-label="Brain source">
-      <button type="button" data-source="cloud" aria-pressed="true">Cloud</button>
-      <button type="button" data-source="machine" aria-pressed="false" disabled>This machine</button>
+    <div class="mark"><b>JARVIS</b><span>Førstehjernen · stemmekonsoll</span></div>
+    <div class="seg" role="group" aria-label="Kilde">
+      <button type="button" data-source="cloud" aria-pressed="true">Sky</button>
+      <button type="button" data-source="machine" aria-pressed="false" disabled>Denne maskinen</button>
     </div>
     <div class="tele">
-      <div>Notes <i id="tNodes">0</i></div>
-      <div>Links <i id="tLinks">0</i></div>
-      <div>Store <i id="tStore">local</i></div>
-      <div>Brain <i id="tBrain">offline</i></div>
+      <div>Notater <i id="tNodes">0</i></div>
+      <div>Koblinger <i id="tLinks">0</i></div>
+      <div>Lagring <i id="tStore">lokalt</i></div>
+      <div>Hjerne <i id="tBrain">frakoblet</i></div>
     </div>
   </div>
 
   <div class="split">
-    <section class="frame" aria-label="Knowledge graph">
+    <section class="frame" aria-label="Kunnskapsgraf">
       <canvas id="graph"></canvas>
       <span class="tick tl"></span><span class="tick tr"></span>
       <span class="tick bl"></span><span class="tick br"></span>
 
       <div class="gtop">
-        <span class="gtitle">Graph<i> · drag to move · scroll to zoom</i></span>
-        <span class="seedchip" id="seedChip">Sample brain — edit or clear it</span>
+        <span class="gtitle">Graf<i> · dra for å flytte · scroll for å zoome</i></span>
+        <span class="seedchip" id="seedChip">Eksempelhjerne — rediger eller tøm den</span>
       </div>
 
       <div class="legend" id="legend"></div>
@@ -398,31 +398,31 @@ button,input,textarea,select{font:inherit;color:inherit}
       <div class="slot" id="inspector" hidden>
         <header>
           <span class="dot" id="insDot"></span>
-          <h3 id="insTitle">Note</h3>
+          <h3 id="insTitle">Notat</h3>
           <span class="grp" id="insGroup"></span>
         </header>
-        <label for="insNote">Note</label>
-        <textarea id="insNote" placeholder="What matters about this?"></textarea>
+        <label for="insNote">Tekst</label>
+        <textarea id="insNote" placeholder="Hva er det viktige her?"></textarea>
         <div class="slotrow">
-          <button class="btn" id="insLink" type="button">Link to…</button>
-          <button class="btn" id="insReveal" type="button" hidden>Reveal</button>
-          <button class="btn danger" id="insDel" type="button">Delete</button>
-          <button class="btn" id="insClose" type="button">Close</button>
+          <button class="btn" id="insLink" type="button">Koble til…</button>
+          <button class="btn" id="insReveal" type="button" hidden>Vis fila</button>
+          <button class="btn danger" id="insDel" type="button">Slett</button>
+          <button class="btn" id="insClose" type="button">Lukk</button>
         </div>
       </div>
 
       <div class="slot" id="composer" hidden>
-        <header><span class="dot" style="background:var(--ion)"></span><h3>New note</h3></header>
-        <label for="npLabel">Title</label>
-        <input id="npLabel" placeholder="e.g. Q4 launch plan" autocomplete="off">
-        <label for="npGroup">Cluster</label>
-        <input id="npGroup" list="groupList" placeholder="notes" autocomplete="off">
+        <header><span class="dot" style="background:var(--ion)"></span><h3>Nytt notat</h3></header>
+        <label for="npLabel">Tittel</label>
+        <input id="npLabel" placeholder="f.eks. Lanseringsplan Q4" autocomplete="off">
+        <label for="npGroup">Klynge</label>
+        <input id="npGroup" list="groupList" placeholder="notater" autocomplete="off">
         <datalist id="groupList"></datalist>
-        <label for="npNote">Note</label>
-        <textarea id="npNote" placeholder="Optional detail"></textarea>
+        <label for="npNote">Tekst</label>
+        <textarea id="npNote" placeholder="Valgfri detalj"></textarea>
         <div class="slotrow">
-          <button class="btn go" id="npAdd" type="button">Add note</button>
-          <button class="btn" id="npCancel" type="button">Cancel</button>
+          <button class="btn go" id="npAdd" type="button">Legg til</button>
+          <button class="btn" id="npCancel" type="button">Avbryt</button>
         </div>
       </div>
     </section>
@@ -431,44 +431,44 @@ button,input,textarea,select{font:inherit;color:inherit}
       <div class="hud">
         <div class="ringwrap">
           <canvas id="hudCanvas"></canvas>
-          <div class="ringlabel"><b>J.A.R.V.I.S.</b><span id="hudState">standby</span></div>
+          <div class="ringlabel"><b>J.A.R.V.I.S.</b><span id="hudState">i beredskap</span></div>
         </div>
         <div class="chips">
-          <span class="chip state" id="stateChip" data-state="idle"><i class="led"></i><span id="stateText">Idle</span></span>
-          <span class="chip model">Claude · on your account</span>
+          <span class="chip state" id="stateChip" data-state="idle"><i class="led"></i><span id="stateText">Rolig</span></span>
+          <span class="chip model">Claude · på din konto</span>
         </div>
-        <div class="seg" role="group" aria-label="Visualiser">
+        <div class="seg" role="group" aria-label="Visualisering">
           <button type="button" data-mode="ring" aria-pressed="true">Ring</button>
-          <button type="button" data-mode="cube" aria-pressed="false">Cube</button>
-          <button type="button" data-mode="face" aria-pressed="false">Face</button>
+          <button type="button" data-mode="cube" aria-pressed="false">Kube</button>
+          <button type="button" data-mode="face" aria-pressed="false">Ansikt</button>
         </div>
-        <p class="wake">say <em>“Jarvis, …”</em> while listening</p>
+        <p class="wake">si <em>“Jarvis, …”</em> mens den lytter</p>
       </div>
 
       <div class="link" id="linkCard" data-linked="checking">
-        <h4><i></i><span id="linkTitle">Machine link</span></h4>
-        <div id="linkBody"><p>Looking for Jarvis on this machine…</p></div>
+        <h4><i></i><span id="linkTitle">Maskinkobling</span></h4>
+        <div id="linkBody"><p>Ser etter Jarvis på denne maskinen…</p></div>
       </div>
 
       <div class="hint" id="voiceHint" hidden></div>
 
       <form class="cmd" id="cmdForm">
-        <button class="mic" id="mic" type="button" aria-pressed="false" aria-label="Toggle listening" title="Toggle listening">
+        <button class="mic" id="mic" type="button" aria-pressed="false" aria-label="Slå lytting av og på" title="Slå lytting av og på">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
             <rect x="9" y="2.5" width="6" height="11" rx="3"></rect>
             <path d="M5.5 11a6.5 6.5 0 0 0 13 0"></path>
             <path d="M12 17.5V21"></path>
           </svg>
         </button>
-        <input id="cmdInput" placeholder="Ask Jarvis anything about your brain" autocomplete="off">
+        <input id="cmdInput" placeholder="Spør Jarvis om hva som helst i hjernen din" autocomplete="off">
         <button class="btn go" id="send" type="submit">Send</button>
       </form>
 
       <div class="card session">
         <header>
-          <span class="badge" id="sesBadge">Standby</span>
-          <h2 id="sesTitle">No session</h2>
-          <button type="button" id="sesStop" title="Stop" hidden>✕</button>
+          <span class="badge" id="sesBadge">Beredskap</span>
+          <h2 id="sesTitle">Ingen økt</h2>
+          <button type="button" id="sesStop" title="Stopp" hidden>✕</button>
         </header>
         <div class="utter" id="sesUtter" hidden></div>
         <div class="answer" id="sesAnswer"></div>
@@ -476,19 +476,19 @@ button,input,textarea,select{font:inherit;color:inherit}
       </div>
 
       <div class="card log">
-        <h4>Session log</h4>
-        <ol id="log"><li class="empty">Nothing yet. Ask something.</li></ol>
+        <h4>Øktlogg</h4>
+        <ol id="log"><li class="empty">Ingenting ennå. Spør om noe.</li></ol>
       </div>
     </aside>
   </div>
 
   <div class="dock">
-    <button class="btn" id="dAdd" type="button">+ Note</button>
-    <button class="btn" id="dFit" type="button">Fit view</button>
-    <button class="btn on" id="dVoice" type="button" aria-pressed="true">Speak replies</button>
-    <button class="btn" id="dWake" type="button" aria-pressed="false">Wake word only</button>
-    <button class="btn danger" id="dClear" type="button">Clear brain</button>
-    <span class="credit">Jarvis OS · <b>built with Claude Code</b></span>
+    <button class="btn" id="dAdd" type="button">+ Notat</button>
+    <button class="btn" id="dFit" type="button">Tilpass</button>
+    <button class="btn on" id="dVoice" type="button" aria-pressed="true">Les opp svar</button>
+    <button class="btn" id="dWake" type="button" aria-pressed="false">Kun vekkeord</button>
+    <button class="btn danger" id="dClear" type="button">Tøm hjernen</button>
+    <span class="credit">Jarvis OS · <b>bygget med Claude Code</b></span>
   </div>
 </div>
 
@@ -499,9 +499,11 @@ button,input,textarea,select{font:inherit;color:inherit}
 /* ============================ clusters & seed ============================ */
 
 const NAMED = {
-  core:"#e6ecf7", content:"#f06fa8", systems:"#a480ff", research:"#48d8ff",
-  money:"#f0a04b", clients:"#3ddc97", notes:"#8ea0bd", inbox:"#ffb45c",
-  projects:"#5ee0c8", people:"#ff9fd0"
+  kjerne:"#e6ecf7", innhold:"#f06fa8", systemer:"#a480ff", research:"#48d8ff",
+  penger:"#f0a04b", kunder:"#3ddc97", notater:"#8ea0bd", innboks:"#ffb45c",
+  prosjekter:"#5ee0c8", folk:"#ff9fd0",
+  core:"#e6ecf7", content:"#f06fa8", systems:"#a480ff", money:"#f0a04b",
+  clients:"#3ddc97", notes:"#8ea0bd", inbox:"#ffb45c", projects:"#5ee0c8", people:"#ff9fd0"
 };
 const EXTRA = ["#f5d76e","#b6e84f","#ff77c8","#ff6b5e","#7fa8ff","#4fe0d8"];
 function groupColor(g){
@@ -512,21 +514,21 @@ function groupColor(g){
 }
 
 const SEED_NODES = [
-  ["brain","Second Brain","core",23],["content","Content engine","content",15],
-  ["scripts","Video scripts","content",10],["hooks","Hook library","content",9],
-  ["pillars","Content pillars","content",10],["thumbs","Thumbnail tests","content",8],
-  ["news","Newsletter","content",9],["shorts","Shorts pipeline","content",8],
-  ["systems","Systems","systems",15],["publish","Publishing pipeline","systems",10],
-  ["autos","Automation stack","systems",10],["inbox","Voice-note inbox","systems",9],
-  ["review","Weekly review","systems",9],["prompts","Prompt library","systems",10],
-  ["cc","Claude Code setup","systems",9],["research","Research","research",14],
-  ["models","Model notes","research",9],["teardown","Competitor teardown","research",8],
-  ["queue","Reading queue","research",8],["field","Field notes","research",8],
-  ["money","Money","money",14],["dash","Revenue dashboard","money",10],
-  ["pricing","Pricing ladder","money",9],["stripe","Stripe events","money",8],
-  ["runway","Runway","money",8],["clients","Clients","clients",14],
-  ["roster","Client roster","clients",9],["onboard","Onboarding kit","clients",9],
-  ["cases","Case studies","clients",9],["retainer","Retainer terms","clients",8]
+  ["brain","Førstehjernen","kjerne",23],["content","Innholdsmotor","innhold",15],
+  ["scripts","Videomanus","innhold",10],["hooks","Kroker","innhold",9],
+  ["pillars","Innholdssøyler","innhold",10],["thumbs","Thumbnail-tester","innhold",8],
+  ["news","Nyhetsbrev","innhold",9],["shorts","Shorts-løype","innhold",8],
+  ["systems","Systemer","systemer",15],["publish","Publiseringsløype","systemer",10],
+  ["autos","Automasjoner","systemer",10],["inbox","Talenotat-innboks","systemer",9],
+  ["review","Ukesgjennomgang","systemer",9],["prompts","Promptbibliotek","systemer",10],
+  ["cc","Claude Code-oppsett","systemer",9],["research","Research","research",14],
+  ["models","Modellnotater","research",9],["teardown","Konkurrentanalyse","research",8],
+  ["queue","Lesekø","research",8],["field","Feltnotater","research",8],
+  ["money","Penger","penger",14],["dash","Inntektsoversikt","penger",10],
+  ["pricing","Pristrapp","penger",9],["stripe","Stripe-hendelser","penger",8],
+  ["runway","Runway","penger",8],["clients","Kunder","kunder",14],
+  ["roster","Kundeliste","kunder",9],["onboard","Oppstartspakke","kunder",9],
+  ["cases","Kundehistorier","kunder",9],["retainer","Avtalevilkår","kunder",8]
 ];
 const SEED_LINKS = [
   ["brain","content"],["brain","systems"],["brain","research"],["brain","money"],["brain","clients"],
@@ -542,10 +544,10 @@ const SEED_LINKS = [
   ["roster","retainer"],["cases","news"]
 ];
 const SEED_NOTES = {
-  brain:"Everything the studio knows, in one graph. Ask Jarvis and he reads from here.",
-  content:"One idea in, four formats out.",
-  prompts:"Reusable prompts, each with the input it expects.",
-  review:"Friday: close loops, promote notes, prune the graph."
+  brain:"Alt studioet vet, i én graf. Spør Jarvis, så leser han herfra.",
+  content:"Én idé inn, fire formater ut.",
+  prompts:"Gjenbrukbare prompter, hver med det den forventer inn.",
+  review:"Fredag: lukk løkker, løft notater, luk i grafen."
 };
 
 /* ============================ state ============================ */
@@ -604,31 +606,31 @@ function refreshTelemetry(){
    normal case on a phone or a browser tab, not an error to apologise for. */
 
 const MCP_COPY = {
-  server_not_connected:"Jarvis isn't answering on this machine. Open this page in the Claude desktop app, with the jarvis MCP server running.",
-  not_in_manifest:"That tool isn't part of what this page may call.",
-  needs_reauth:"The machine link needs reconnecting in the Claude app.",
-  selection_required:"Two servers share that name — pick one in the Claude app.",
-  blocked_by_policy:"Your organisation blocks this connector.",
-  approval_required:"That needs approval in the Claude app first.",
-  cancelled:"You declined that one in the Claude app.",
-  server_unavailable:"The machine didn't answer in time. Is the server still running?",
-  rate_limited:"Too many calls at once. Give it a second.",
-  bad_request:"Jarvis sent that tool the wrong arguments.",
-  tool_error:"The machine reported a problem with that.",
-  not_granted:"Access to the machine was declined for this view.",
-  capability_disabled:"Connector access is switched off for this page.",
-  capability_removed:"Connector access was withdrawn from this page.",
-  upstream_error:"The machine errored on that one."
+  server_not_connected:"Jarvis svarer ikke på denne maskinen. Åpne siden i Claude-appen, med jarvis-serveren i gang.",
+  not_in_manifest:"Det verktøyet er ikke noe denne siden har lov til å kalle.",
+  needs_reauth:"Maskinkoblingen må kobles til på nytt i Claude-appen.",
+  selection_required:"To servere deler det navnet — velg én i Claude-appen.",
+  blocked_by_policy:"Organisasjonen din blokkerer denne koblingen.",
+  approval_required:"Det må godkjennes i Claude-appen først.",
+  cancelled:"Du avslo den i Claude-appen.",
+  server_unavailable:"Maskinen svarte ikke i tide. Kjører serveren fortsatt?",
+  rate_limited:"For mange kall på én gang. Vent et øyeblikk.",
+  bad_request:"Jarvis sendte feil argumenter til det verktøyet.",
+  tool_error:"Maskinen meldte om et problem med den.",
+  not_granted:"Tilgang til maskinen ble avslått for denne visningen.",
+  capability_disabled:"Koblingstilgang er slått av for denne siden.",
+  capability_removed:"Koblingstilgang ble trukket tilbake fra denne siden.",
+  upstream_error:"Maskinen feilet på den."
 };
 function mcpCopy(e){
   const code = e && e.code;
   if(code === "tool_error" && e.message) return e.message;
-  return MCP_COPY[code] || (e && e.message) || "That call didn't go through.";
+  return MCP_COPY[code] || (e && e.message) || "Det kallet gikk ikke gjennom.";
 }
 
 /* Read calls may be retried once, and only when the runtime says so. */
 async function mcall(tool, input, opts){
-  if(!mcp) throw {code:"server_not_connected", message:"No machine link."};
+  if(!mcp) throw {code:"server_not_connected", message:"Ingen maskinkobling."};
   const options = Object.assign({}, opts);
   try{
     const r = await mcp.callTool(HOST, tool, input, options);
@@ -651,15 +653,15 @@ function renderLinkCard(){
 
   if(m.status === "checking"){
     card.dataset.linked = "checking";
-    el.linkTitle.textContent = "Machine link";
-    p("Looking for Jarvis on this machine…");
+    el.linkTitle.textContent = "Maskinkobling";
+    p("Ser etter Jarvis på denne maskinen…");
     return;
   }
   if(m.status === "linked"){
     card.dataset.linked = "yes";
-    el.linkTitle.textContent = "Linked to this machine";
-    p("Jarvis can reach your real notes and files through the <code>jarvis</code> server running here.");
-    if(m.dir) p("Brain folder: <code>" + escapeHtml(m.dir) + "</code>");
+    el.linkTitle.textContent = "Koblet til denne maskinen";
+    p("Jarvis når de virkelige notatene og filene dine gjennom <code>jarvis</code>-serveren som kjører her.");
+    if(m.dir) p("Hjernemappe: <code>" + escapeHtml(m.dir) + "</code>");
     const t = document.createElement("div");
     t.className = "tools";
     t.textContent = m.tools.join(" · ");
@@ -667,10 +669,10 @@ function renderLinkCard(){
     return;
   }
   card.dataset.linked = "no";
-  el.linkTitle.textContent = "No machine link";
+  el.linkTitle.textContent = "Ingen maskinkobling";
   p(m.detail || MCP_COPY.server_not_connected);
-  p("Two things have to be true: this page must be published with the <code>jarvis</code> server in its manifest, and you must open it in the Claude desktop app with that server running.");
-  p("Until then it works on its own brain, synced across your devices.");
+  p("To ting må stemme: siden må være publisert med <code>jarvis</code>-serveren i manifestet sitt, og du må åpne den i Claude-appen med den serveren i gang.");
+  p("Inntil da går den på sin egen hjerne, synkronisert mellom enhetene dine.");
 }
 function escapeHtml(s){
   return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -679,7 +681,7 @@ function escapeHtml(s){
 async function initMachine(){
   if(!mcp){
     state.machine.status = "absent";
-    state.machine.detail = "Connector access isn't available in this view. On a phone or a browser tab that is expected — the machine link only works inside the Claude desktop app.";
+    state.machine.detail = "Koblingstilgang finnes ikke i denne visningen. På telefon eller i en nettleserfane er det forventet — maskinkoblingen virker bare inne i Claude-appen.";
     renderLinkCard();
     return;
   }
@@ -742,7 +744,7 @@ function cloudSnapshot(){
 function adopt(data){
   if(!data || !Array.isArray(data.nodes) || !data.nodes.length) return false;
   state.nodes = data.nodes.map(n=>({
-    id:String(n.id), label:String(n.label||n.id), group:String(n.group||"notes"),
+    id:String(n.id), label:String(n.label||n.id), group:String(n.group||"notater"),
     r:Number(n.r)||9, note:String(n.note||""),
     x:Number(n.x)||0, y:Number(n.y)||0, vx:0, vy:0
   }));
@@ -766,7 +768,7 @@ function scheduleSave(){
     saveLocal();
     if(dbDoc){
       state.rev = data.rev;
-      dbDoc.set(data).catch(()=>{ el.tStore.textContent = "local"; });
+      dbDoc.set(data).catch(()=>{ el.tStore.textContent = "lokalt"; });
     }
   }, 700);
 }
@@ -783,7 +785,7 @@ const cloud = {
     const base = anchor || nodeById("brain") || state.nodes[0];
     const a = Math.random()*Math.PI*2;
     const n = {
-      id:slug(label), label, group:group||"notes", r:9, note:note||"",
+      id:slug(label), label, group:group||"notater", r:9, note:note||"",
       x:(base?base.x:0)+Math.cos(a)*70, y:(base?base.y:0)+Math.sin(a)*70, vx:0, vy:0
     };
     state.nodes.push(n);
@@ -850,7 +852,7 @@ const machine = {
       const pos = prev ? {x:prev.x, y:prev.y}
                 : saved ? {x:saved.x, y:saved.y}
                 : {x:Math.cos(a)*(r>15?90:230), y:Math.sin(a)*(r>15?90:230)};
-      return {id:n.title, label:n.title, group:String(n.group||"notes"), r,
+      return {id:n.title, label:n.title, group:String(n.group||"notater"), r,
               note:String(n.summary||""), x:pos.x, y:pos.y, vx:0, vy:0};
     });
 
@@ -872,7 +874,7 @@ const machine = {
     renderLinkCard();
   },
   async add(label, group, note, connectTo){
-    await mcall("write_note", {title:label, group:group||"notes", body:note||"",
+    await mcall("write_note", {title:label, group:group||"notater", body:note||"",
                                related:connectTo ? [connectTo] : []});
     await machine.load();
     return nodeById(label);
@@ -918,7 +920,7 @@ async function setSource(next, quiet){
   }
   refreshTelemetry();
   renderLegend();
-  el.tBrain.textContent = state.source === "machine" ? "machine" : (sample ? "online" : "offline");
+  el.tBrain.textContent = state.source === "machine" ? "maskin" : (sample ? "tilkoblet" : "frakoblet");
   el.tBrain.className = state.source === "machine" ? "ok" : "";
   settle(60);
   fitView();
@@ -1233,7 +1235,7 @@ async function onNodeClick(n){
     if(from !== n.id){
       try{
         await SRC().link(from, n.id);
-        flash("Linked.");
+        flash("Koblet.");
         refreshTelemetry();
       }catch(e){ flash(mcpCopy(e), true); }
     }
@@ -1272,7 +1274,7 @@ $("#insLink").onclick = ()=>{
   state.linkFrom = state.selected;
   el.graph.classList.add("linking");
   el.inspector.hidden = true;
-  flash("Pick the note to link to.");
+  flash("Velg notatet du vil koble til.");
 };
 $("#insReveal").onclick = ()=>{
   const n = nodeById(state.selected);
@@ -1282,21 +1284,21 @@ $("#insDel").onclick = async ()=>{
   const n = nodeById(state.selected);
   if(!n) return;
   const what = state.source === "machine"
-    ? "Move “"+n.label+"” to the brain's .trash folder on your machine?"
-    : "Delete “"+n.label+"”?";
+    ? "Flytte “"+n.label+"” til hjernens .trash-mappe på maskinen din?"
+    : "Slette “"+n.label+"”?";
   if(!confirm(what)) return;
   try{
     await SRC().remove(n.id);
     closeSlots();
     refreshTelemetry();
-    flash(state.source === "machine" ? "Moved to .trash." : "Removed.");
+    flash(state.source === "machine" ? "Flyttet til .trash." : "Fjernet.");
   }catch(e){ flash(mcpCopy(e), true); }
 };
 
 $("#dAdd").onclick = ()=>{
   el.inspector.hidden = true; el.composer.hidden = false;
   el.npLabel.value = ""; el.npNote.value = "";
-  el.npGroup.value = (nodeById(state.selected) || {}).group || "notes";
+  el.npGroup.value = (nodeById(state.selected) || {}).group || "notater";
   el.npLabel.focus();
 };
 $("#npCancel").onclick = closeSlots;
@@ -1305,7 +1307,7 @@ $("#npAdd").onclick = async ()=>{
   if(!label){ el.npLabel.focus(); return; }
   const anchor = state.selected;
   try{
-    const n = await SRC().add(label, (el.npGroup.value||"notes").trim().toLowerCase(), el.npNote.value, anchor);
+    const n = await SRC().add(label, (el.npGroup.value||"notater").trim().toLowerCase(), el.npNote.value, anchor);
     closeSlots();
     refreshTelemetry();
     renderLegend();
@@ -1317,11 +1319,11 @@ el.npLabel.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefaul
 $("#dFit").onclick = ()=>{ settle(40); fitView(); };
 el.dClear.onclick = ()=>{
   if(state.source === "machine") return;
-  if(!confirm("Clear every note and start an empty brain?")) return;
-  state.nodes = [{id:"brain",label:"Second Brain",group:"core",r:22,note:"",x:0,y:0,vx:0,vy:0}];
+  if(!confirm("Tømme alle notater og starte en tom hjerne?")) return;
+  state.nodes = [{id:"brain",label:"Førstehjernen",group:"kjerne",r:22,note:"",x:0,y:0,vx:0,vy:0}];
   state.links = [];
   closeSlots(); dirty(); renderLegend(); fitView();
-  flash("Brain cleared.");
+  flash("Hjernen er tømt.");
 };
 
 document.querySelectorAll("[data-source]").forEach(b=>{
@@ -1330,8 +1332,8 @@ document.querySelectorAll("[data-source]").forEach(b=>{
 
 /* ============================ status ============================ */
 
-const PHASES = {idle:["Idle","standby"], listening:["Listening","listening"],
-                thinking:["Thinking","working"], speaking:["Speaking","speaking"], off:["Voice off","no mic"]};
+const PHASES = {idle:["Rolig","i beredskap"], listening:["Lytter","lytter"],
+                thinking:["Tenker","jobber"], speaking:["Snakker","snakker"], off:["Stemme av","ingen mikrofon"]};
 function setPhase(p){
   state.phase = p;
   const [chip, ring] = PHASES[p] || PHASES.idle;
@@ -1362,7 +1364,7 @@ function holdHint(msg){
 
 function titleFor(s){ const t = s.replace(/\s+/g," ").trim(); return t.length>44 ? t.slice(0,44)+"…" : t; }
 function beginSession(q){
-  el.sesBadge.textContent = "Live"; el.sesBadge.className = "badge live";
+  el.sesBadge.textContent = "Direkte"; el.sesBadge.className = "badge live";
   el.sesTitle.textContent = titleFor(q);
   el.sesUtter.textContent = q; el.sesUtter.hidden = false;
   el.sesAnswer.textContent = ""; el.sesMeta.textContent = "";
@@ -1382,7 +1384,7 @@ function renderLog(){
   el.log.textContent = "";
   if(!state.log.length){
     const li = document.createElement("li");
-    li.className = "empty"; li.textContent = "Nothing yet. Ask something.";
+    li.className = "empty"; li.textContent = "Ingenting ennå. Spør om noe.";
     el.log.appendChild(li); return;
   }
   for(const e of state.log){
@@ -1396,7 +1398,7 @@ function renderLog(){
     body.appendChild(q); body.appendChild(a);
     li.appendChild(time); li.appendChild(body);
     li.onclick = ()=>{
-      el.sesBadge.textContent = "Replay"; el.sesBadge.className = "badge";
+      el.sesBadge.textContent = "Reprise"; el.sesBadge.className = "badge";
       el.sesTitle.textContent = titleFor(e.q);
       el.sesUtter.textContent = e.q; el.sesUtter.hidden = false;
       el.sesAnswer.textContent = e.a; el.sesMeta.textContent = "";
@@ -1428,7 +1430,7 @@ let rec = null, recWanted = false;
 function initRecognition(){
   if(!SR){
     el.mic.disabled = true;
-    holdHint("Voice input needs Chrome or Edge. Everything else works — type your command below.");
+    holdHint("Stemmeinngang krever Chrome eller Edge. Alt annet fungerer — skriv kommandoen under.");
     setPhase("off");
     return;
   }
@@ -1444,7 +1446,7 @@ function initRecognition(){
   rec.onerror = ev=>{
     if(ev.error==="not-allowed" || ev.error==="service-not-allowed"){
       recWanted = false;
-      holdHint("Microphone blocked. Allow it in the address bar, or just type below.");
+      holdHint("Mikrofonen er blokkert. Tillat den i adressefeltet, eller bare skriv under.");
       setPhase("off");
     }
   };
@@ -1474,16 +1476,16 @@ el.mic.onclick = ()=>{
 /* ============================ the brain ============================ */
 
 function persona(){
-  const machineLine = state.source === "machine"
-    ? "You are wired into this person's actual machine: the notes are real markdown files there, and you can also look at their files. Look before you answer."
-    : "You work from this page's own brain, which syncs across their devices. You cannot see their files from here — if they ask about files, say the machine link isn't active.";
+  const maskinlinje = state.source === "machine"
+    ? "Du er koblet rett inn i maskinen til denne personen: notatene er ekte markdown-filer der, og du kan også se på filene deres. Se etter før du svarer."
+    : "Du jobber fra denne sidens egen hjerne, som synkroniseres mellom enhetene deres. Du kan ikke se filene deres herfra — spør de om filer, si at maskinkoblingen ikke er aktiv.";
   return [
-    "You are JARVIS, the resident intelligence of this person's second brain.",
-    "Voice: composed, dry, economical — a capable chief of staff, never chirpy, never a disclaimer machine.",
-    "Answers are spoken aloud, so keep them to 1-3 short sentences unless asked for more. No markdown, no bullet lists, no emoji.",
-    "Always reply in the same language the user just used.",
-    machineLine,
-    "After using a tool, say plainly what you did. If the brain has no answer, say so and offer to capture it as a note."
+    "Du er JARVIS, den faste intelligensen i denne personens førstehjerne — ikke en «andre hjerne», dette er den de bruker.",
+    "Stemme: behersket, tørr, økonomisk — en dyktig stabssjef. Aldri jublende, aldri en forbeholdsmaskin.",
+    "Svarene leses høyt, så hold dem til 1–3 korte setninger med mindre du blir bedt om mer. Ingen markdown, ingen kulepunkter, ingen emoji.",
+    "Svar på norsk med mindre brukeren tydelig skriver på et annet språk — da svarer du på det språket.",
+    maskinlinje,
+    "Etter at du har brukt et verktøy, si rett ut hva du gjorde. Har hjernen ikke svaret, si det, og tilby å fange det som et notat."
   ].join(" ");
 }
 
@@ -1493,10 +1495,10 @@ function brainContext(){
       .map(l=>l.s===n.id?l.t:l.s).slice(0,6).join(", ");
     return "- " + n.label + " [" + n.group + "]" +
       (n.note ? " — " + n.note.slice(0,120) : "") +
-      (links ? " (linked: " + links + ")" : "");
+      (links ? " (koblet: " + links + ")" : "");
   });
-  return "The brain right now (" + state.nodes.length + " notes, source: " +
-    (state.source === "machine" ? "this machine" : "cloud") + "):\n" + lines.join("\n");
+  return "Hjernen akkurat nå (" + state.nodes.length + " notater, kilde: " +
+    (state.source === "machine" ? "denne maskinen" : "sky") + "):\n" + lines.join("\n");
 }
 
 function buildTools(used){
@@ -1504,18 +1506,18 @@ function buildTools(used){
   const tools = [
     {
       name:"add_note",
-      description:"Capture a new note in the second brain and link it to an existing note.",
+      description:"Fang et nytt notat i hjernen og koble det til et notat som finnes.",
       inputSchema:{type:"object",properties:{
-        label:{type:"string",description:"Short title, under 60 characters"},
-        group:{type:"string",description:"Cluster it belongs to"},
-        detail:{type:"string",description:"One or two sentences of substance"},
-        connect_to:{type:"string",description:"Title of an existing note to link it to"}
+        label:{type:"string",description:"Kort tittel, under 60 tegn"},
+        group:{type:"string",description:"Klyngen det hører til"},
+        detail:{type:"string",description:"Én eller to setninger med substans"},
+        connect_to:{type:"string",description:"Tittel på et eksisterende notat å koble det til"}
       },required:["label"]},
       execute: async (inp)=>{
         try{
           const n = await SRC().add(String(inp.label||"").slice(0,60),
                                     inp.group, inp.detail, inp.connect_to);
-          used.push("added " + (n ? n.label : inp.label));
+          used.push("la til " + (n ? n.label : inp.label));
           refreshTelemetry(); renderLegend();
           if(n) openInspector(n);
           return {ok:true, title:(n?n.label:inp.label)};
@@ -1524,12 +1526,12 @@ function buildTools(used){
     },
     {
       name:"connect",
-      description:"Link two notes that already exist.",
+      description:"Koble sammen to notater som allerede finnes.",
       inputSchema:{type:"object",properties:{from:{type:"string"},to:{type:"string"}},required:["from","to"]},
       execute: async (inp)=>{
         try{
           const ok = await SRC().link(inp.from, inp.to);
-          if(ok) used.push("linked " + inp.from + " ↔ " + inp.to);
+          if(ok) used.push("koblet " + inp.from + " ↔ " + inp.to);
           refreshTelemetry();
           return {ok:!!ok};
         }catch(e){ return {ok:false, error:mcpCopy(e)}; }
@@ -1537,12 +1539,12 @@ function buildTools(used){
     },
     {
       name:"search_brain",
-      description:"Search note titles and bodies for a term.",
+      description:"Søk i notattitler og -tekst etter et ord.",
       inputSchema:{type:"object",properties:{query:{type:"string"}},required:["query"]},
       execute: async (inp)=>{
         try{
           const hits = await SRC().search(inp.query);
-          used.push("searched “" + inp.query + "”");
+          used.push("søkte “" + inp.query + "”");
           return {count:hits.length, hits};
         }catch(e){ return {ok:false, error:mcpCopy(e)}; }
       }
@@ -1553,52 +1555,52 @@ function buildTools(used){
     tools.push(
       {
         name:"read_note",
-        description:"Read one note from the machine in full, by title.",
+        description:"Les ett notat fra maskinen i sin helhet, etter tittel.",
         inputSchema:{type:"object",properties:{title:{type:"string"}},required:["title"]},
         execute: async (inp)=>{
           try{
             const r = await mcall("read_note", {title:inp.title}, {readOnly:true});
-            used.push("read " + inp.title);
+            used.push("leste " + inp.title);
             return r;
           }catch(e){ return {ok:false, error:mcpCopy(e)}; }
         }
       },
       {
         name:"list_files",
-        description:"List files and folders in the user's workspace on this machine.",
+        description:"List filer og mapper i brukerens arbeidsområde på denne maskinen.",
         inputSchema:{type:"object",properties:{
-          dir:{type:"string",description:"Path relative to the workspace. Omit for the root."}
+          dir:{type:"string",description:"Sti relativt til arbeidsområdet. Utelat for roten."}
         }},
         execute: async (inp)=>{
           try{
             const r = await mcall("list_files", {dir:inp.dir || "."}, {readOnly:true});
-            used.push("listed " + (inp.dir || "workspace"));
+            used.push("listet " + (inp.dir || "arbeidsområdet"));
             return r;
           }catch(e){ return {ok:false, error:mcpCopy(e)}; }
         }
       },
       {
         name:"read_file",
-        description:"Read a text file from the user's workspace on this machine.",
+        description:"Les en tekstfil fra brukerens arbeidsområde på denne maskinen.",
         inputSchema:{type:"object",properties:{path:{type:"string"}},required:["path"]},
         execute: async (inp)=>{
           try{
             const r = await mcall("read_file", {path:inp.path}, {readOnly:true});
-            used.push("read " + inp.path);
+            used.push("leste " + inp.path);
             return r;
           }catch(e){ return {ok:false, error:mcpCopy(e)}; }
         }
       },
       {
         name:"notify",
-        description:"Show a desktop notification on the user's machine.",
+        description:"Vis et skrivebordsvarsel på brukerens maskin.",
         inputSchema:{type:"object",properties:{
           title:{type:"string"}, body:{type:"string"}
         },required:["body"]},
         execute: async (inp)=>{
           try{
             await mcall("notify", {title:inp.title || "Jarvis", body:inp.body});
-            used.push("notified");
+            used.push("varslet");
             return {ok:true};
           }catch(e){ return {ok:false, error:mcpCopy(e)}; }
         }
@@ -1616,8 +1618,8 @@ async function ask(utterance){
   if(!sample){
     beginSession(utterance);
     el.sesAnswer.textContent =
-      "The Claude connection isn't available in this view, so I can't answer yet. The graph, voice capture and notes all still work.";
-    el.sesBadge.textContent = "Failed"; el.sesBadge.className = "badge err";
+      "Claude-forbindelsen finnes ikke i denne visningen, så jeg kan ikke svare ennå. Grafen, stemmeopptaket og notatene fungerer likevel.";
+    el.sesBadge.textContent = "Mislyktes"; el.sesBadge.className = "badge err";
     el.sesStop.hidden = true;
     return;
   }
@@ -1626,7 +1628,7 @@ async function ask(utterance){
 
   beginSession(utterance);
   setPhase("thinking");
-  el.sesAnswer.textContent = "Thinking…";
+  el.sesAnswer.textContent = "Tenker…";
   el.send.disabled = true;
 
   const used = [];
@@ -1647,7 +1649,7 @@ async function ask(utterance){
     state.turns.push({role:"assistant", content:text});
     state.turns = state.turns.slice(-10);
     el.sesAnswer.textContent = text;
-    el.sesBadge.textContent = "Ended"; el.sesBadge.className = "badge";
+    el.sesBadge.textContent = "Avsluttet"; el.sesBadge.className = "badge";
     el.sesMeta.textContent = "";
     used.forEach(addToolChip);
     pushLog(utterance, text);
@@ -1656,12 +1658,12 @@ async function ask(utterance){
   }catch(e){
     const kept = e && e.text ? e.text : "";
     el.sesAnswer.textContent = kept || sampleCopy(e && e.code);
-    el.sesBadge.textContent = "Failed"; el.sesBadge.className = "badge err";
+    el.sesBadge.textContent = "Mislyktes"; el.sesBadge.className = "badge err";
     el.sesMeta.textContent = "";
     used.forEach(addToolChip);
     setPhase(state.listening ? "listening" : "idle");
     if(e && e.code === "not_granted"){
-      holdHint("Claude access was declined for this view. Reload the page to be asked again.");
+      holdHint("Claude-tilgang ble avslått for denne visningen. Last siden på nytt for å bli spurt igjen.");
     }
   }finally{
     el.send.disabled = false;
@@ -1672,11 +1674,11 @@ async function ask(utterance){
 
 function sampleCopy(code){
   switch(code){
-    case "cancelled":    return "Stopped.";
-    case "not_granted":  return "You declined Claude access for this view, so I can't answer. Reload to allow it.";
-    case "rate_limited": return "Too many questions at once. Give it a few seconds and ask again.";
-    case "unavailable":  return "The connection to Claude dropped. Try again in a moment.";
-    default:             return "That didn't go through. Try again, or rephrase it.";
+    case "cancelled":    return "Stoppet.";
+    case "not_granted":  return "Du avslo Claude-tilgang for denne visningen, så jeg kan ikke svare. Last på nytt for å tillate det.";
+    case "rate_limited": return "For mange spørsmål på én gang. Vent noen sekunder og spør igjen.";
+    case "unavailable":  return "Forbindelsen til Claude falt ut. Prøv igjen om et øyeblikk.";
+    default:             return "Det gikk ikke gjennom. Prøv igjen, eller si det på en annen måte.";
   }
 }
 
@@ -1701,7 +1703,7 @@ dWake.onclick = ()=>{
   state.wakeOnly = !state.wakeOnly;
   dWake.classList.toggle("on", state.wakeOnly);
   dWake.setAttribute("aria-pressed", String(state.wakeOnly));
-  flash(state.wakeOnly ? "I'll only act on “Jarvis, …”." : "I'll act on anything I hear.");
+  flash(state.wakeOnly ? "Jeg reagerer bare på “Jarvis, …”." : "Jeg reagerer på alt jeg hører.");
 };
 document.querySelectorAll("[data-mode]").forEach(b=>{
   b.onclick = ()=>{
@@ -1743,7 +1745,7 @@ function start(restored){
   /* No viewer at all (a saved copy, another host): there is nothing to wait for. */
   if(!(window.claude && typeof window.claude.use === "function")){
     state.machine.status = "absent";
-    state.machine.detail = "This copy of the page isn't running inside a Claude viewer, so it cannot reach a machine link.";
+    state.machine.detail = "Denne kopien av siden kjører ikke inne i en Claude-visning, så den kan ikke nå noen maskinkobling.";
     renderLinkCard();
     return;
   }
@@ -1751,7 +1753,7 @@ function start(restored){
   setTimeout(()=>{
     if(state.machine.status === "checking"){
       state.machine.status = "absent";
-      state.machine.detail = "No answer about connectors in this view. On a phone or a browser tab that is expected — the machine link only works inside the Claude desktop app.";
+      state.machine.detail = "Ingen svar om koblinger i denne visningen. På telefon eller i en nettleserfane er det forventet — maskinkoblingen virker bare inne i Claude-appen.";
       renderLinkCard();
     }
   }, 12000);
@@ -1771,7 +1773,7 @@ if(window.claude && typeof window.claude.use === "function"){
   window.claude.use("sample").then(s=>{
     sample = s;
     if(state.source === "cloud"){
-      el.tBrain.textContent = s ? "online" : "offline";
+      el.tBrain.textContent = s ? "tilkoblet" : "frakoblet";
     }
   }).catch(()=>{});
 
@@ -1780,7 +1782,7 @@ if(window.claude && typeof window.claude.use === "function"){
     return initMachine();
   }).catch(()=>{
     state.machine.status = "absent";
-    state.machine.detail = "Could not check for a machine link in this view.";
+    state.machine.detail = "Fikk ikke sjekket etter en maskinkobling i denne visningen.";
     renderLinkCard();
   });
 
@@ -1788,7 +1790,7 @@ if(window.claude && typeof window.claude.use === "function"){
     if(!db) return;
     try{
       dbDoc = db.doc("brain/graph");
-      el.tStore.textContent = "synced";
+      el.tStore.textContent = "synket";
       dbDoc.onSnapshot(snap=>{
         if(state.source !== "cloud") return;
         if(!snap.exists){ if(!state.seeded) scheduleSave(); return; }
@@ -1804,8 +1806,8 @@ if(window.claude && typeof window.claude.use === "function"){
           renderLegend();
           fitView();
         }
-      }, ()=>{ el.tStore.textContent = "local"; dbDoc = null; });
-    }catch(e){ el.tStore.textContent = "local"; dbDoc = null; }
+      }, ()=>{ el.tStore.textContent = "lokalt"; dbDoc = null; });
+    }catch(e){ el.tStore.textContent = "lokalt"; dbDoc = null; }
   }).catch(()=>{});
 }
 })();

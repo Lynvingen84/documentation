@@ -44,7 +44,7 @@ function loadConfig() {
   const cfgPath = path.join(HERE, "jarvis.config.json");
   if (fs.existsSync(cfgPath)) {
     try { file = JSON.parse(fs.readFileSync(cfgPath, "utf8")); }
-    catch (e) { console.error("! jarvis.config.json is not valid JSON — ignoring it.\n  " + e.message); }
+    catch (e) { console.error("! jarvis.config.json er ikke gyldig JSON — hopper over den.\n  " + e.message); }
   }
   const env = {};
   if (process.env.JARVIS_PORT) env.port = Number(process.env.JARVIS_PORT);
@@ -75,21 +75,21 @@ const brain = createBrain(CFG.brainDir);
 /* --------------------------------------------------------------- the brain */
 
 const PERSONA = [
-  "You are JARVIS, the resident intelligence of this machine and of the user's second brain.",
-  "Voice: composed, dry, economical — a capable chief of staff. Never chirpy, never a disclaimer machine.",
-  "Your answers are SPOKEN ALOUD. Keep them to 1-3 short sentences unless explicitly asked for more.",
-  "Never use markdown, bullet lists, headings or emoji in your reply — it is read by a speech synthesiser.",
-  "Always reply in the same language the user just used.",
+  "Du er JARVIS, den faste intelligensen på denne maskinen og i brukerens førstehjerne — ikke en «andre hjerne», dette er den de bruker.",
+  "Stemme: behersket, tørr, økonomisk — en dyktig stabssjef. Aldri jublende, aldri en forbeholdsmaskin.",
+  "Svarene dine LESES HØYT. Hold dem til 1–3 korte setninger med mindre du uttrykkelig blir bedt om mer.",
+  "Bruk aldri markdown, kulepunkter, overskrifter eller emoji i svaret — det leses av en talesyntese.",
+  "Svar på norsk med mindre brukeren tydelig skriver på et annet språk — da svarer du på det språket.",
   "",
-  "The second brain is a folder of markdown files at: " + CFG.brainDir,
-  "Each note is one .md file: YAML frontmatter with a `group:` line, then `# Title`, then the body.",
-  "Notes link to each other with [[Wiki Links]] naming another note's title.",
-  "To capture something new, write a new .md file there in exactly that shape.",
-  "To relate two notes, add a [[Wiki Link]] to one of them.",
-  "The console redraws the graph automatically when files change — do not describe the file operation, just say what you captured.",
+  "Førstehjernen er en mappe med markdown-filer her: " + CFG.brainDir,
+  "Hvert notat er én .md-fil: YAML-frontmatter med en `group:`-linje, så `# Tittel`, så teksten.",
+  "Notater kobles til hverandre med [[Wikilenker]] som navngir et annet notats tittel.",
+  "Skal du fange noe nytt, skriv en ny .md-fil der i nøyaktig den formen.",
+  "Skal du knytte sammen to notater, legg en [[Wikilenke]] i det ene.",
+  "Konsollet tegner grafen på nytt av seg selv når filer endres — ikke beskriv filoperasjonen, bare si hva du fanget.",
   "",
-  "When asked about files, projects or the state of the machine, look before you answer.",
-  "If you genuinely cannot find something, say so plainly and offer to capture it as a note."
+  "Blir du spurt om filer, prosjekter eller tilstanden på maskinen: se etter før du svarer.",
+  "Finner du virkelig ikke noe, si det rett ut og tilby å fange det som et notat."
 ].join("\n");
 
 function accessArgs(access) {
@@ -105,9 +105,9 @@ function accessArgs(access) {
 
 function buildPrompt(question, history) {
   const turns = (history || []).slice(-6)
-    .map(t => (t.role === "user" ? "User: " : "You: ") + t.content)
+    .map(t => (t.role === "user" ? "Bruker: " : "Du: ") + t.content)
     .join("\n");
-  return (turns ? "Recent conversation:\n" + turns + "\n\n" : "") + "User: " + question;
+  return (turns ? "Nylig samtale:\n" + turns + "\n\n" : "") + "Bruker: " + question;
 }
 
 function runClaude(question, history, access, onEvent) {
@@ -143,8 +143,8 @@ function runClaude(question, history, access, onEvent) {
     if (settled) return;
     child.kill("SIGKILL");
     onEvent({ type: "error", message: answered
-      ? "Claude Code stopped partway through."
-      : "Claude Code did not answer in time. If it is waiting on a permission prompt, change \"permissionMode\" in jarvis.config.json." });
+      ? "Claude Code stoppet underveis."
+      : "Claude Code svarte ikke i tide. Venter den på en tillatelse den ikke får vist, endre \"permissionMode\" i jarvis.config.json." });
     settle();
   }, CFG.askTimeoutMs);
 
@@ -178,7 +178,7 @@ function runClaude(question, history, access, onEvent) {
           }
         }
       } else if (ev.type === "result" && ev.subtype && ev.subtype !== "success" && !answered) {
-        onEvent({ type: "error", message: "Claude Code ended with: " + ev.subtype });
+        onEvent({ type: "error", message: "Claude Code avsluttet med: " + ev.subtype });
       }
     }
   });
@@ -187,14 +187,14 @@ function runClaude(question, history, access, onEvent) {
 
   child.on("error", err => {
     onEvent({ type: "error", message: err.code === "ENOENT"
-      ? "Could not find the `claude` command. Install Claude Code, or set \"claudeBin\" in jarvis.config.json."
+      ? "Fant ikke kommandoen `claude`. Installer Claude Code, eller sett \"claudeBin\" i jarvis.config.json."
       : err.message });
     settle();
   });
 
   child.on("close", code => {
     if (!answered && code !== 0) {
-      onEvent({ type: "error", message: (stderr.trim().split("\n").pop() || "Claude Code exited with code " + code) });
+      onEvent({ type: "error", message: (stderr.trim().split("\n").pop() || "Claude Code avsluttet med kode " + code) });
     }
     settle();
   });
@@ -252,7 +252,7 @@ function watchBrain() {
       watchTimer = setTimeout(() => broadcast({ type: "brain-changed" }), 260);
     });
   } catch (e) {
-    console.log("  (live file watching unavailable here — the console still reloads on demand)");
+    console.log("  (live filovervåking er ikke tilgjengelig her — konsollet laster fortsatt på forespørsel)");
   }
 }
 
@@ -282,7 +282,7 @@ const server = http.createServer(async (req, res) => {
 
   if (TOKEN) {
     const given = url.searchParams.get("k") || req.headers["x-jarvis-key"];
-    if (given !== TOKEN) return send(res, 403, { error: "Bad or missing key." });
+    if (given !== TOKEN) return send(res, 403, { error: "Feil eller manglende nøkkel." });
   }
 
   try {
@@ -362,7 +362,7 @@ const server = http.createServer(async (req, res) => {
     if (p === "/api/ask" && req.method === "POST") {
       const b = await readBody(req);
       const question = String(b.question || "").slice(0, 8000);
-      if (!question) return send(res, 400, { error: "Nothing to ask." });
+      if (!question) return send(res, 400, { error: "Ingenting å spørre om." });
       const access = ["read", "write", "full"].includes(b.access) ? b.access : CFG.access;
 
       res.writeHead(200, {
@@ -380,7 +380,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    return send(res, 404, { error: "No such endpoint." });
+    return send(res, 404, { error: "Det endepunktet finnes ikke." });
   } catch (err) {
     return send(res, 500, { error: String(err && err.message || err) });
   }
@@ -401,28 +401,28 @@ function localAddresses() {
 
 (async () => {
   const seeded = await brain.ensure();
-  if (seeded) console.log("  seeded " + seeded + " example notes in " + brain.dir);
+  if (seeded) console.log("  la inn " + seeded + " eksempelnotater i " + brain.dir);
   watchBrain();
 
   const hostBind = CFG.lan ? "0.0.0.0" : "127.0.0.1";
   server.listen(CFG.port, hostBind, () => {
     const q = TOKEN ? "?k=" + TOKEN : "";
     console.log("");
-    console.log("  J A R V I S   ·   local companion");
+    console.log("  J A R V I S   ·   lokal følgesvenn");
     console.log("  ─────────────────────────────────");
-    console.log("  console    http://localhost:" + CFG.port + q);
+    console.log("  konsoll        http://localhost:" + CFG.port + q);
     if (CFG.lan) {
-      for (const a of localAddresses()) console.log("  phone      http://" + a + ":" + CFG.port + q);
-      console.log("  (LAN mode: the key above is required. Anyone on this network with it gets the same access.)");
+      for (const a of localAddresses()) console.log("  telefon        http://" + a + ":" + CFG.port + q);
+      console.log("  (LAN-modus: nøkkelen over kreves. Alle på nettverket som har den, får samme tilgang.)");
     }
-    console.log("  brain      " + CFG.brainDir);
-    console.log("  workspace  " + CFG.workspace);
-    console.log("  access     " + CFG.access + "   (change it in the console, or in jarvis.config.json)");
+    console.log("  hjerne         " + brain.dir);
+    console.log("  arbeidsområde  " + CFG.workspace);
+    console.log("  tilgang        " + CFG.access + "   (endres i konsollet, eller i jarvis.config.json)");
     console.log("");
   });
   server.on("error", e => {
     if (e.code === "EADDRINUSE") {
-      console.error("! Port " + CFG.port + " is taken. Start it with --port 8788, or change \"port\" in jarvis.config.json.");
+      console.error("! Port " + CFG.port + " er opptatt. Start med --port 8788, eller endre \"port\" i jarvis.config.json.");
       process.exit(1);
     }
     throw e;

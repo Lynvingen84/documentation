@@ -1,93 +1,97 @@
-# Jarvis · local
+# Jarvis · lokal
 
-The same console as the hosted version, but running **on your machine** — so it can
-actually reach your files, your projects and Claude Code on this computer.
+Samme konsoll som den hostede versjonen, men kjørende **på din maskin** — så den faktisk
+når filene dine, prosjektene dine og Claude Code på denne datamaskinen.
 
-Two pieces:
+To deler:
 
-- **`server.js`** — a small companion process. No dependencies, Node 18+.
-- **`public/index.html`** — the console it serves.
+- **`server.js`** — en liten følgesvenn-prosess. Ingen avhengigheter, Node 18+.
+- **`public/index.html`** — konsollet den serverer.
 
-## Run it
+## Kjør den
 
 ```bash
 cd jarvis/local
 npm start
 ```
 
-Then open **http://localhost:8787**.
+Åpne så **http://localhost:8787**.
 
-On first run it creates `brain/` with a handful of example notes so the graph
-isn't empty. Point it at a real folder whenever you like (see *Configuration*).
+Første gang lager den `brain/` med ni eksempelnotater, så grafen ikke er tom. Pek den på
+en ekte mappe når du vil (se *Innstillinger*).
 
-To run it on your Mac as well, copy the same folder over and `npm start` there —
-each machine keeps its own brain folder.
+For å kjøre den på Mac-en også: kopier over samme mappe og `npm start` der. Hver maskin
+har sin egen hjernemappe.
 
-## What it can do that the hosted version cannot
+## Hvordan tester du at den virker?
 
-| | Hosted artifact | Local |
+**1. Grafen tegner seg.** Etter `npm start` skal http://localhost:8787 vise ni noder med
+`Førstehjernen` i midten, og øverst til høyre skal det stå `NOTATER 9`, `KOBLINGER 10`.
+Står det «Følgesvennen kjører ikke», har ikke prosessen startet — se terminalen.
+
+**2. Filene er ekte.** Klikk **Åpne hjernemappa** i docken. Filbehandleren skal åpne mappa
+med ni `.md`-filer. Åpne en i en hvilken som helst editor, endre teksten, lagre — grafen
+skal oppdatere seg i løpet av et øyeblikk uten at du laster siden på nytt.
+
+**3. Skriving går andre veien.** Trykk **+ Notat**, skriv en tittel, trykk **Skriv fil**.
+Det skal dukke opp en ny `.md`-fil i mappa med én gang.
+
+**4. Claude svarer.** Skriv i kommandolinja: *«hva ligger i hjernen min?»* Du skal se
+verktøybrikker («Read», «Glob») mens den jobber, og et kort svar på norsk. Kommer det
+«Fant ikke kommandoen `claude`», er ikke Claude Code installert — sett `claudeBin` til
+full sti, eller installer den.
+
+**5. Stemme.** Trykk mikrofonknappen i Chrome eller Edge og si *«Jarvis, hva ligger i
+hjernen min?»* Statusbrikka skal gå fra Rolig til Lytter til Tenker til Snakker.
+
+**6. Den skriver notater selv.** Sett tilgang til **Skriv** og si eller skriv:
+*«noter at podcast-introen må skrives om før fredag, og koble det til Innholdsmotor»*.
+En ny fil skal dukke opp i mappa, og grafen skal få en ny node med en kobling.
+
+Vil du teste MCP-halvdelen i stedet, kjør `cd ../mcp && npm test` — 28 automatiske
+sjekker uten oppsett.
+
+## Hva den kan som den hostede versjonen ikke kan
+
+| | Hostet artefakt | Lokal |
 | --- | --- | --- |
-| Graph, notes, links, voice | ✅ | ✅ |
-| Notes are real `.md` files you own | ❌ | ✅ |
-| Read your files and projects | ❌ | ✅ |
-| Write files, run commands | ❌ | ✅ (opt-in) |
-| Works with an existing Obsidian vault | ❌ | ✅ |
-| Reachable from your phone | ✅ anywhere | ✅ on your network |
+| Graf, notater, koblinger, stemme | ✅ | ✅ |
+| Notatene er ekte `.md`-filer du eier | ❌ | ✅ |
+| Lese filene og prosjektene dine | ❌ | ✅ |
+| Skrive filer, kjøre kommandoer | ❌ | ✅ (valgfritt) |
+| Fungerer med et eksisterende Obsidian-vault | ❌ | ✅ |
+| Nåbar fra telefonen | ✅ overalt | ✅ på ditt nettverk |
 
-## The brain is a folder of markdown
+## Maskintilgang
 
-Every note is one `.md` file:
+**Les / Skriv / Full**-bryteren i konsollet bestemmer hva Jarvis får gjøre denne økta.
+Den styrer hvordan Claude Code startes:
 
-```markdown
----
-group: content
----
-
-# Video scripts
-
-Drafts live here. Related to [[Content engine]].
-```
-
-- **Title** comes from the `# Heading`, or the filename.
-- **Cluster** comes from `group:` in the frontmatter, or the subfolder name, or `notes`.
-- **Links** are `[[Wiki Links]]` — the same syntax Obsidian uses, so you can point
-  `brainDir` at an existing vault and your real graph shows up.
-- **Node positions** live in `.jarvis-layout.json` inside the brain folder, so dragging
-  things around never rewrites your notes.
-
-Edit a file in any editor and the graph redraws within a moment — the companion
-watches the folder.
-
-## Machine access
-
-The **Read / Write / Full** switch in the console decides what Jarvis may do this
-session. It maps onto how Claude Code is launched:
-
-| Level | Claude Code runs with | Jarvis can |
+| Nivå | Claude Code kjøres med | Jarvis kan |
 | --- | --- | --- |
-| **Read** | `--restricted`, no write tools | Read files, search, answer from your notes |
-| **Write** | `--restricted` | Also create and edit files, including new notes |
-| **Full** | no restriction, `--permission-mode bypassPermissions` | Also run shell commands, with no confirmation |
+| **Les** | `--restricted`, ingen skriveverktøy | Lese filer, søke, svare fra notatene |
+| **Skriv** | `--restricted` | I tillegg lage og endre filer, inkludert nye notater |
+| **Full** | uten begrensning, `--permission-mode bypassPermissions` | I tillegg kjøre skallkommandoer, uten bekreftelse |
 
-Read is the default. Full asks you to confirm once, and is the only level where a
-spoken command can run something on your machine — use it while you're watching.
+Les er standard. Full ber om bekreftelse én gang, og er det eneste nivået der en
+talekommando kan kjøre noe på maskinen din — bruk det mens du ser på.
 
-Every call prints the exact command to the terminal, so you can always see what
-was launched.
+Hvert kall skriver den eksakte kommandoen til terminalen, så du kan alltid se hva som ble
+startet.
 
-If a request hangs and then reports a timeout, Claude Code was most likely waiting
-on a permission prompt it cannot show in this mode. Set `"permissionMode"` in
-`jarvis.config.json` to something that doesn't prompt, or drop to a lower level.
+Henger en forespørsel og melder tidsavbrudd, ventet Claude Code sannsynligvis på en
+tillatelse den ikke får vist i denne modusen. Sett `"permissionMode"` i
+`jarvis.config.json` til noe som ikke spør, eller gå ned et nivå.
 
-## Configuration
+## Innstillinger
 
-Copy `jarvis.config.example.json` to `jarvis.config.json` and edit:
+Kopier `jarvis.config.example.json` til `jarvis.config.json` og rediger:
 
 ```json
 {
   "port": 8787,
-  "brainDir": "~/Documents/Brain",
-  "workspace": "~/Projects",
+  "brainDir": "~/Documents/Hjernen",
+  "workspace": "~/Prosjekter",
   "claudeBin": "claude",
   "model": "",
   "access": "read",
@@ -96,58 +100,58 @@ Copy `jarvis.config.example.json` to `jarvis.config.json` and edit:
 }
 ```
 
-- **`brainDir`** — the notes folder. An Obsidian vault works.
-- **`workspace`** — where Claude Code starts. This is what "my projects" means to Jarvis.
-- **`model`** — leave empty for your default, or pin one.
+- **`brainDir`** — notatmappa. Et Obsidian-vault fungerer.
+- **`workspace`** — hvor Claude Code starter. Dette er hva «prosjektene mine» betyr for Jarvis.
+- **`model`** — la stå tom for standarden din, eller lås en.
 
-Environment variables `JARVIS_PORT`, `JARVIS_BRAIN`, `JARVIS_WORKSPACE` and
-`JARVIS_MODEL` override the file, and `--port` / `--brain` override both.
+Miljøvariablene `JARVIS_PORT`, `JARVIS_BRAIN`, `JARVIS_WORKSPACE` og `JARVIS_MODEL`
+overstyrer fila, og `--port` / `--brain` overstyrer begge.
 
-`jarvis.config.json` and `brain/` are gitignored.
+`jarvis.config.json` og `brain/` er gitignorert.
 
-## Reaching it from your phone
+## Å nå den fra telefonen
 
 ```bash
 npm run lan
 ```
 
-This binds to your network and prints a URL containing a one-time key:
+Den binder seg til nettverket og skriver ut en URL med en engangsnøkkel:
 
 ```
-phone   http://192.168.1.24:8787?k=Xf3k9...
+telefon        http://192.168.1.24:8787?k=Xf3k9...
 ```
 
-Open that on your phone while on the same Wi-Fi. Two things to know:
+Åpne den på telefonen mens du er på samme wifi. To ting å vite:
 
-- **The key is the only protection.** Anyone on that network who has it gets the same
-  access level you've selected. Don't leave Full on while in LAN mode.
-- **Voice won't work over plain http on the phone** — browsers only allow microphone
-  access on secure origins. Typing works fine. If you want voice on the phone, reach
-  the machine over Tailscale or another https route instead.
+- **Nøkkelen er hele beskyttelsen.** Alle på det nettverket som har den, får samme
+  tilgangsnivå som du har valgt. Ikke la Full stå på i LAN-modus.
+- **Stemme virker ikke over vanlig http på telefonen** — nettlesere gir bare
+  mikrofontilgang på sikre origins. Skriving fungerer fint. Vil du ha stemme på
+  telefonen, nå maskinen over Tailscale eller en annen https-rute i stedet.
 
-## Requirements
+## Krav
 
 - **Node 18+**
-- **Claude Code** installed and signed in (`claude`). If it lives somewhere unusual,
-  set `claudeBin` to the full path.
-- **Chrome or Edge** for voice input. Everything else works in any browser.
+- **Claude Code** installert og innlogget (`claude`). Ligger den et uvanlig sted, sett
+  `claudeBin` til full sti.
+- **Chrome eller Edge** for stemmeinngang. Alt annet fungerer i alle nettlesere.
 
-Each question spawns a fresh `claude -p` process, so it carries Claude Code's normal
-startup cost per question. Recent turns are passed back in as context, so it follows
-a conversation.
+Hvert spørsmål starter en ny `claude -p`-prosess, så den bærer Claude Codes vanlige
+oppstartskostnad per spørsmål. De siste replikkene sendes med som kontekst, så den følger
+en samtale.
 
-## Endpoints
+## Endepunkter
 
-If you want to wire something else in:
+Vil du koble på noe annet:
 
-| Method | Path | Does |
+| Metode | Sti | Gjør |
 | --- | --- | --- |
-| `GET` | `/api/state` | Whole graph plus config |
-| `POST` | `/api/ask` | Ask Claude; streams SSE (`delta`, `tool`, `error`, `done`) |
-| `POST` | `/api/note` | Create or update a note |
-| `DELETE` | `/api/note` | Move a note to `.trash` |
-| `POST` | `/api/link` | Add a wiki link between two notes |
-| `POST` | `/api/layout` | Save node positions |
-| `POST` | `/api/reveal` | Show a file in Finder/Explorer |
-| `POST` | `/api/notify` | System notification |
-| `GET` | `/api/events` | SSE stream of `brain-changed` |
+| `GET` | `/api/state` | Hele grafen pluss innstillinger |
+| `POST` | `/api/ask` | Spør Claude; strømmer SSE (`delta`, `tool`, `error`, `done`) |
+| `POST` | `/api/note` | Lag eller oppdater et notat |
+| `DELETE` | `/api/note` | Flytt et notat til `.trash` |
+| `POST` | `/api/link` | Legg en wikilenke mellom to notater |
+| `POST` | `/api/layout` | Lagre nodeposisjoner |
+| `POST` | `/api/reveal` | Vis en fil i Finder/Utforsker |
+| `POST` | `/api/notify` | Skrivebordsvarsel |
+| `GET` | `/api/events` | SSE-strøm av `brain-changed` |

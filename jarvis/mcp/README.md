@@ -1,107 +1,140 @@
-# Jarvis · MCP server
+# Jarvis · MCP-server
 
-An MCP server that runs on your machine and hands Claude your second brain and your
-workspace. Register it once with the Claude desktop app and Claude can read your notes,
-capture new ones, look through your project files and put a notification on your screen —
-on your Mac and on your PC, each with its own brain folder.
+En MCP-server som kjører på din maskin og gir Claude førstehjernen din og arbeidsområdet
+ditt. Registrer den én gang i Claude-appen, så kan Claude lese notatene dine, fange nye,
+lete i prosjektfilene dine og legge et varsel på skjermen — på Mac-en og på PC-en, hver
+med sin egen hjernemappe.
 
-No dependencies. Node 18+.
+Ingen avhengigheter. Node 18+.
 
-## Register it with the Claude app
+## Test den først
 
-In the app: **Settings → Developer → Edit Config**. Or edit the file directly:
+```bash
+cd jarvis/mcp
+npm test
+```
+
+Selvtesten starter serveren mot en midlertidig hjernemappe, kjører hele protokollen og
+hvert eneste verktøy, og rydder opp etter seg. **Dine egne notater blir ikke rørt.**
+Den sjekker 28 ting:
+
+- at `initialize`, `tools/list` og `tools/call` svarer riktig
+- at de ti verktøyene er der, og at `run_command` *ikke* er det uten at du har skrudd det på
+- at leseverktøyene er merket read-only og skriveverktøyene ikke er det
+- at hjernemappa såes med de ni eksempelnotatene, at rotnotatet heter Førstehjernen
+  og at klyngene er norske
+- at `write_note` skriver riktig frontmatter og wikilenke, og at `read_note` ser
+  skrivingen med én gang
+- at `search_brain` finner det nye notatet og `link_notes` knytter det videre
+- at `list_files` og `read_file` ser arbeidsområdet
+- at `read_file` og `write_note` **ikke** slipper ut av mappene sine
+- at ukjente notater og ukjente verktøy gir tydelige feil i stedet for krasj
+- at `trash_note` flytter til `.trash` i stedet for å slette
+
+Grønt hele veien betyr at serveren er i orden. Da gjenstår bare å koble den til appen.
+
+## Registrer den i Claude-appen
+
+I appen: **Settings → Developer → Edit Config**. Eller rediger fila direkte:
 
 - **macOS** — `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows** — `%APPDATA%\Claude\claude_desktop_config.json`
 
-Add a `jarvis` entry, with an **absolute** path to `server.js`:
+Legg inn en `jarvis`-oppføring med **absolutt** sti til `server.js`:
 
 ```json
 {
   "mcpServers": {
     "jarvis": {
       "command": "node",
-      "args": ["/Users/you/code/documentation/jarvis/mcp/server.js"],
+      "args": ["/Users/deg/kode/documentation/jarvis/mcp/server.js"],
       "env": {
-        "JARVIS_BRAIN": "/Users/you/Documents/Brain",
-        "JARVIS_WORKSPACE": "/Users/you/Projects"
+        "JARVIS_BRAIN": "/Users/deg/Documents/Hjernen",
+        "JARVIS_WORKSPACE": "/Users/deg/Prosjekter"
       }
     }
   }
 }
 ```
 
-On Windows use double backslashes: `"C:\\Users\\you\\code\\documentation\\jarvis\\mcp\\server.js"`.
+På Windows må du doble skråstrekene: `"C:\\Users\\deg\\kode\\documentation\\jarvis\\mcp\\server.js"`.
 
-Restart the app. The tools appear under the connectors icon. If the app's config UI
-disagrees with the shape above, trust the app — it owns that file.
+Start appen på nytt. Verktøyene dukker opp under koblings-ikonet. Er appens eget
+konfigurasjonsgrensesnitt uenig med formen over, stol på appen — den eier den fila.
 
-Then try: *"What's in my second brain?"*, *"Note that the podcast intro needs a rewrite
-before Friday, and link it to the Content engine"*, *"What's in my Projects folder?"*
+### Prøv den
 
-## The tools
+- *«Hva ligger i førstehjernen min?»*
+- *«Noter at podcast-introen må skrives om før fredag, og koble det til Innholdsmotor.»*
+- *«Hva ligger i Prosjekter-mappa mi?»*
+- *«Søk i hjernen etter faktura.»*
 
-| Tool | Reads or writes | Does |
+Etter det andre spørsmålet skal det ligge en ny `.md`-fil i hjernemappa, med riktig
+frontmatter og en `[[Innholdsmotor]]`-lenke. Åpner du mappa i Obsidian, er den der også.
+
+## Verktøyene
+
+| Verktøy | Leser eller skriver | Gjør |
 | --- | --- | --- |
-| `list_notes` | read | Every note with its cluster and links |
-| `read_note` | read | One note in full |
-| `search_brain` | read | Search titles and bodies |
-| `list_files` | read | Directory listing inside the workspace |
-| `read_file` | read | A text file inside the workspace |
-| `write_note` | write | Capture a new note as a markdown file |
-| `link_notes` | write | Relate two notes with a wiki link |
-| `trash_note` | write | Move a note to `.trash` |
-| `reveal` | write | Show a file in Finder or Explorer |
-| `notify` | write | Desktop notification |
-| `run_command` | write | Shell command — **off unless you turn it on** |
+| `list_notes` | leser | Alle notater med klynge og koblinger |
+| `read_note` | leser | Ett notat i sin helhet |
+| `search_brain` | leser | Søk i titler og tekst |
+| `list_files` | leser | Kataloglisting i arbeidsområdet |
+| `read_file` | leser | En tekstfil i arbeidsområdet |
+| `write_note` | skriver | Fanger et nytt notat som markdown-fil |
+| `link_notes` | skriver | Knytter to notater med en wikilenke |
+| `trash_note` | skriver | Flytter et notat til `.trash` |
+| `reveal` | skriver | Viser en fil i Finder eller Utforsker |
+| `notify` | skriver | Skrivebordsvarsel |
+| `run_command` | skriver | Skallkommando — **av med mindre du skrur den på** |
 
-The read tools are annotated read-only, so the app runs them without interrupting you.
-Everything that writes is deliberately left un-annotated: the app asks first.
+Leseverktøyene er merket read-only, så appen kjører dem uten å avbryte deg. Alt som
+skriver er bevisst umerket: appen spør først.
 
-## Safety
+## Sikkerhet
 
-- **`read_file` and `list_files` cannot escape the workspace.** Paths that try are
-  rejected, `../..` included.
-- **`trash_note` never deletes.** Notes move to `.trash` inside the brain folder.
-- **`run_command` is not even listed** unless you set `"allowShell": true` in
-  `jarvis.mcp.json` (or `JARVIS_ALLOW_SHELL=1`). Turn it on only if you want spoken
-  commands able to run things.
+- **`read_file` og `list_files` slipper ikke ut av arbeidsområdet.** Stier som forsøker
+  blir avvist, `../..` inkludert. Selvtesten sjekker nettopp dette.
+- **`trash_note` sletter aldri.** Notater flyttes til `.trash` inne i hjernemappa.
+- **`run_command` er ikke engang listet** med mindre du setter `"allowShell": true` i
+  `jarvis.mcp.json` (eller `JARVIS_ALLOW_SHELL=1`). Skru den på bare hvis du vil at
+  talekommandoer skal kunne kjøre ting.
 
-## Configuration
+## Innstillinger
 
-Copy `jarvis.mcp.example.json` to `jarvis.mcp.json`, or use the `env` block in the app
-config as shown above.
+Kopier `jarvis.mcp.example.json` til `jarvis.mcp.json`, eller bruk `env`-blokka i
+app-konfigurasjonen som vist over.
 
-| Key | Env | Default | Meaning |
+| Nøkkel | Miljøvariabel | Standard | Betyr |
 | --- | --- | --- | --- |
-| `brainDir` | `JARVIS_BRAIN` | `../local/brain` | The notes folder. An Obsidian vault works. |
-| `workspace` | `JARVIS_WORKSPACE` | your home folder | What `list_files` and `read_file` may see. |
-| `allowShell` | `JARVIS_ALLOW_SHELL=1` | `false` | Whether `run_command` exists at all. |
-| `maxFileBytes` | — | `120000` | Where `read_file` truncates. |
+| `brainDir` | `JARVIS_BRAIN` | `../local/brain` | Notatmappa. Et Obsidian-vault fungerer. |
+| `workspace` | `JARVIS_WORKSPACE` | hjemmemappa di | Hva `list_files` og `read_file` får se. |
+| `allowShell` | `JARVIS_ALLOW_SHELL=1` | `false` | Om `run_command` i det hele tatt finnes. |
+| `maxFileBytes` | — | `120000` | Hvor `read_file` kutter. |
 
-It shares the brain folder and the note format with `jarvis/local`, through
-`jarvis/lib/brain.js` — point both at the same folder and they see the same graph.
+Den deler hjernemappa og notatformatet med `jarvis/local`, gjennom `jarvis/lib/brain.js` —
+pek begge på samme mappe, så ser de samme graf.
 
-## Talking to it from the hosted console
+## Å snakke med den fra det hostede konsollet
 
-The Jarvis artifact has a **This machine** switch that reads its graph from this server
-instead of from the cloud, and gives the voice assistant `list_files`, `read_file` and
-`notify` on top of the note tools.
+Jarvis-artefakten har en **Denne maskinen**-bryter som leser grafen fra denne serveren i
+stedet for fra skya, og som gir stemmeassistenten `list_files`, `read_file` og `notify` i
+tillegg til notatverktøyene.
 
-For that to light up, two things must be true:
+For at det skal lyse opp må to ting stemme:
 
-1. The page is published with `host:jarvis` in its `mcp` capability manifest, and
-2. you open it in the **Claude desktop app**, with this server running.
+1. Siden er publisert med `host:jarvis` i `mcp`-manifestet sitt, og
+2. du åpner den i **Claude-appen**, med denne serveren i gang.
 
-Host servers can only be declared when publishing from a session that allows them, and
-only the artifact's owner can call them. Publishing the page from a session where host
-servers aren't available leaves the switch permanently disabled — the page says so
-plainly rather than pretending. Everything in this README works regardless: the app
-itself can use these tools with no artifact involved.
+Host-servere kan bare deklareres når man publiserer fra en økt som tillater dem, og bare
+artefaktens eier kan kalle dem. Publiserer du siden fra en økt der host-servere ikke er
+tilgjengelige, står bryteren permanent deaktivert — siden sier det rett ut i stedet for å
+late som. Alt annet i denne fila fungerer uansett: appen selv kan bruke disse verktøyene
+helt uten artefakt.
 
-## Checking it by hand
+## Å sjekke den for hånd
 
-The server speaks JSON-RPC on stdin/stdout, so you can drive it without the app:
+Serveren snakker JSON-RPC på stdin/stdout, så du kan styre den uten appen:
 
 ```bash
 { echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"probe","version":"1"}}}'
@@ -112,4 +145,4 @@ The server speaks JSON-RPC on stdin/stdout, so you can drive it without the app:
 } | node server.js
 ```
 
-Diagnostics go to stderr, so they never corrupt the protocol on stdout.
+Diagnostikk går til stderr, så den ødelegger aldri protokollen på stdout.

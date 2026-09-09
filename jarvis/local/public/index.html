@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="nb" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jarvis · local</title>
+<title>Jarvis · lokal</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23a480ff' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23a480ff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -130,7 +130,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 .session header button:hover{color:var(--halt)}
 .utter{font-family:var(--f-mono);font-size:11px;color:var(--dim);border-left:2px solid var(--line-hot);padding-left:9px;margin-bottom:10px;word-break:break-word}
 .answer{font-size:13.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word}
-.answer:empty::before{content:"Awaiting a command.";color:var(--faint)}
+.answer:empty::before{content:"Venter på en kommando.";color:var(--faint)}
 .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
 .meta span{font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;color:var(--cyan);border:1px solid rgba(72,216,255,.28);background:rgba(72,216,255,.06);padding:3px 7px;border-radius:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
@@ -174,58 +174,58 @@ button,input,textarea,select{font:inherit;color:inherit}
 
 <div class="curtain" id="curtain">
   <div>
-    <h1>Companion not running</h1>
-    <p id="curtainMsg">This console needs its local companion process. Start it in the <code>jarvis/local</code> folder:</p>
+    <h1>Følgesvennen kjører ikke</h1>
+    <p id="curtainMsg">Dette konsollet trenger følgesvenn-prosessen sin. Start den i mappa <code>jarvis/local</code>:</p>
     <p><code>npm start</code></p>
-    <p>Then reload this page. The companion is what gives Jarvis access to your files and to Claude Code on this machine.</p>
-    <p><button class="btn go" id="retry" type="button">Try again</button></p>
+    <p>Last så siden på nytt. Følgesvennen er det som gir Jarvis tilgang til filene dine og til Claude Code på denne maskinen.</p>
+    <p><button class="btn go" id="retry" type="button">Prøv igjen</button></p>
   </div>
 </div>
 
 <div id="os">
   <div class="strip">
-    <div class="mark"><b>JARVIS</b><span id="hostLabel">local</span></div>
+    <div class="mark"><b>JARVIS</b><span id="hostLabel">lokal</span></div>
     <div class="tele">
-      <div>Notes <i id="tNodes">0</i></div>
-      <div>Links <i id="tLinks">0</i></div>
-      <div>Brain <i id="tBrain">—</i></div>
-      <div>Claude <i id="tClaude">ready</i></div>
+      <div>Notater <i id="tNodes">0</i></div>
+      <div>Koblinger <i id="tLinks">0</i></div>
+      <div>Hjerne <i id="tBrain">—</i></div>
+      <div>Claude <i id="tClaude">klar</i></div>
     </div>
   </div>
 
   <div class="split">
-    <section class="frame" aria-label="Knowledge graph">
+    <section class="frame" aria-label="Kunnskapsgraf">
       <canvas id="graph"></canvas>
       <span class="tick tl"></span><span class="tick tr"></span>
       <span class="tick bl"></span><span class="tick br"></span>
-      <div class="gtop"><span class="gtitle">Graph<i> · your markdown files, live</i></span></div>
+      <div class="gtop"><span class="gtitle">Graf<i> · markdown-filene dine, live</i></span></div>
       <div class="legend" id="legend"></div>
 
       <div class="slot" id="inspector" hidden>
-        <header><span class="dot" id="insDot"></span><h3 id="insTitle">Note</h3><span class="grp" id="insGroup"></span></header>
-        <label for="insNote">Body</label>
-        <textarea id="insNote" placeholder="What matters about this?"></textarea>
+        <header><span class="dot" id="insDot"></span><h3 id="insTitle">Notat</h3><span class="grp" id="insGroup"></span></header>
+        <label for="insNote">Tekst</label>
+        <textarea id="insNote" placeholder="Hva er det viktige her?"></textarea>
         <div class="slotrow">
-          <button class="btn" id="insLink" type="button">Link to…</button>
-          <button class="btn" id="insReveal" type="button">Reveal</button>
-          <button class="btn danger" id="insDel" type="button">Trash</button>
-          <button class="btn" id="insClose" type="button">Close</button>
+          <button class="btn" id="insLink" type="button">Koble til…</button>
+          <button class="btn" id="insReveal" type="button">Vis fila</button>
+          <button class="btn danger" id="insDel" type="button">Kast</button>
+          <button class="btn" id="insClose" type="button">Lukk</button>
         </div>
         <p class="filepath" id="insPath"></p>
       </div>
 
       <div class="slot" id="composer" hidden>
-        <header><span class="dot" style="background:var(--ion)"></span><h3>New note</h3></header>
-        <label for="npLabel">Title</label>
-        <input id="npLabel" placeholder="e.g. Q4 launch plan" autocomplete="off">
-        <label for="npGroup">Cluster</label>
-        <input id="npGroup" list="groupList" placeholder="notes" autocomplete="off">
+        <header><span class="dot" style="background:var(--ion)"></span><h3>Nytt notat</h3></header>
+        <label for="npLabel">Tittel</label>
+        <input id="npLabel" placeholder="f.eks. Lanseringsplan Q4" autocomplete="off">
+        <label for="npGroup">Klynge</label>
+        <input id="npGroup" list="groupList" placeholder="notater" autocomplete="off">
         <datalist id="groupList"></datalist>
-        <label for="npNote">Body</label>
-        <textarea id="npNote" placeholder="Optional detail"></textarea>
+        <label for="npNote">Tekst</label>
+        <textarea id="npNote" placeholder="Valgfri detalj"></textarea>
         <div class="slotrow">
-          <button class="btn go" id="npAdd" type="button">Write file</button>
-          <button class="btn" id="npCancel" type="button">Cancel</button>
+          <button class="btn go" id="npAdd" type="button">Skriv fil</button>
+          <button class="btn" id="npCancel" type="button">Avbryt</button>
         </div>
       </div>
     </section>
@@ -234,39 +234,39 @@ button,input,textarea,select{font:inherit;color:inherit}
       <div class="hud">
         <div class="ringwrap">
           <canvas id="hudCanvas"></canvas>
-          <div class="ringlabel"><b>J.A.R.V.I.S.</b><span id="hudState">standby</span></div>
+          <div class="ringlabel"><b>J.A.R.V.I.S.</b><span id="hudState">i beredskap</span></div>
         </div>
         <div class="chips">
-          <span class="chip state" id="stateChip" data-state="idle"><i class="led"></i><span id="stateText">Idle</span></span>
-          <span class="chip host" id="machineChip">this machine</span>
+          <span class="chip state" id="stateChip" data-state="idle"><i class="led"></i><span id="stateText">Rolig</span></span>
+          <span class="chip host" id="machineChip">denne maskinen</span>
         </div>
-        <div class="modes" role="group" aria-label="Visualiser">
+        <div class="modes" role="group" aria-label="Visualisering">
           <button type="button" data-mode="ring" aria-pressed="true">Ring</button>
-          <button type="button" data-mode="cube" aria-pressed="false">Cube</button>
-          <button type="button" data-mode="face" aria-pressed="false">Face</button>
+          <button type="button" data-mode="cube" aria-pressed="false">Kube</button>
+          <button type="button" data-mode="face" aria-pressed="false">Ansikt</button>
         </div>
-        <p class="wake">say <em>“Jarvis, …”</em> while listening</p>
+        <p class="wake">si <em>“Jarvis, …”</em> mens den lytter</p>
       </div>
 
       <div class="hint" id="voiceHint" hidden></div>
 
       <form class="cmd" id="cmdForm">
-        <button class="mic" id="mic" type="button" aria-pressed="false" aria-label="Toggle listening" title="Toggle listening">
+        <button class="mic" id="mic" type="button" aria-pressed="false" aria-label="Slå lytting av og på" title="Slå lytting av og på">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
             <rect x="9" y="2.5" width="6" height="11" rx="3"></rect>
             <path d="M5.5 11a6.5 6.5 0 0 0 13 0"></path><path d="M12 17.5V21"></path>
           </svg>
         </button>
-        <input id="cmdInput" placeholder="Ask about your notes, your files, this machine" autocomplete="off">
+        <input id="cmdInput" placeholder="Spør om notatene, filene, denne maskinen" autocomplete="off">
         <button class="btn go" id="send" type="submit">Send</button>
       </form>
 
       <div class="card">
         <div class="access">
-          <span class="lbl">Machine access</span>
-          <div class="modes" role="group" aria-label="Machine access">
-            <button type="button" data-access="read" aria-pressed="true">Read</button>
-            <button type="button" data-access="write" aria-pressed="false">Write</button>
+          <span class="lbl">Maskintilgang</span>
+          <div class="modes" role="group" aria-label="Maskintilgang">
+            <button type="button" data-access="read" aria-pressed="true">Les</button>
+            <button type="button" data-access="write" aria-pressed="false">Skriv</button>
             <button type="button" data-access="full" aria-pressed="false">Full</button>
           </div>
         </div>
@@ -275,9 +275,9 @@ button,input,textarea,select{font:inherit;color:inherit}
 
       <div class="card session">
         <header>
-          <span class="badge" id="sesBadge">Standby</span>
-          <h2 id="sesTitle">No session</h2>
-          <button type="button" id="sesStop" title="Stop" hidden>✕</button>
+          <span class="badge" id="sesBadge">Beredskap</span>
+          <h2 id="sesTitle">Ingen økt</h2>
+          <button type="button" id="sesStop" title="Stopp" hidden>✕</button>
         </header>
         <div class="utter" id="sesUtter" hidden></div>
         <div class="answer" id="sesAnswer"></div>
@@ -285,19 +285,19 @@ button,input,textarea,select{font:inherit;color:inherit}
       </div>
 
       <div class="card log">
-        <h4>Session log</h4>
-        <ol id="log"><li class="empty">Nothing yet. Ask something.</li></ol>
+        <h4>Øktlogg</h4>
+        <ol id="log"><li class="empty">Ingenting ennå. Spør om noe.</li></ol>
       </div>
     </aside>
   </div>
 
   <div class="dock">
-    <button class="btn" id="dAdd" type="button">+ Note</button>
-    <button class="btn" id="dFit" type="button">Fit view</button>
-    <button class="btn" id="dReveal" type="button">Open brain folder</button>
-    <button class="btn on" id="dVoice" type="button" aria-pressed="true">Speak replies</button>
-    <button class="btn" id="dWake" type="button" aria-pressed="false">Wake word only</button>
-    <span class="credit">Jarvis OS · <b>built with Claude Code</b></span>
+    <button class="btn" id="dAdd" type="button">+ Notat</button>
+    <button class="btn" id="dFit" type="button">Tilpass</button>
+    <button class="btn" id="dReveal" type="button">Åpne hjernemappa</button>
+    <button class="btn on" id="dVoice" type="button" aria-pressed="true">Les opp svar</button>
+    <button class="btn" id="dWake" type="button" aria-pressed="false">Kun vekkeord</button>
+    <span class="credit">Jarvis OS · <b>bygget med Claude Code</b></span>
   </div>
 </div>
 
@@ -703,8 +703,8 @@ function onNodeClick(n){
     if(from !== n.id){
       mutated();
       jsend("/api/link","POST",{from, toLabel:n.label})
-        .then(()=>{ flash("Linked."); return loadBrain(); })
-        .catch(err=>flash("Could not link: " + err.message, true));
+        .then(()=>{ flash("Koblet."); return loadBrain(); })
+        .catch(err=>flash("Fikk ikke koblet: " + err.message, true));
     }
   }
   openInspector(n);
@@ -734,7 +734,7 @@ el.insNote.addEventListener("input", ()=>{
   noteTimer = setTimeout(()=>{
     mutated();
     jsend("/api/note","POST",{id:n.id, label:n.label, group:n.group, note:n.note})
-      .catch(err=>flash("Could not save: " + err.message, true));
+      .catch(err=>flash("Fikk ikke lagret: " + err.message, true));
   }, 800);
 });
 $("#insClose").onclick = closeSlots;
@@ -743,7 +743,7 @@ $("#insLink").onclick = ()=>{
   state.linkFrom = state.selected;
   el.graph.classList.add("linking");
   el.inspector.hidden = true;
-  flash("Pick the note to link to.");
+  flash("Velg notatet du vil koble til.");
 };
 $("#insReveal").onclick = ()=>{
   const n = nodeById(state.selected);
@@ -751,16 +751,16 @@ $("#insReveal").onclick = ()=>{
 };
 $("#insDel").onclick = async ()=>{
   const n = nodeById(state.selected);
-  if(!n || !confirm("Move “"+n.label+"” to the brain's .trash folder?")) return;
+  if(!n || !confirm("Flytte “"+n.label+"” til hjernens .trash-mappe?")) return;
   mutated();
-  try{ await jsend("/api/note","DELETE",{id:n.id}); closeSlots(); await loadBrain(); flash("Moved to .trash."); }
-  catch(err){ flash("Could not delete: " + err.message, true); }
+  try{ await jsend("/api/note","DELETE",{id:n.id}); closeSlots(); await loadBrain(); flash("Flyttet til .trash."); }
+  catch(err){ flash("Fikk ikke slettet: " + err.message, true); }
 };
 
 $("#dAdd").onclick = ()=>{
   el.inspector.hidden = true; el.composer.hidden = false;
   el.npLabel.value = ""; el.npNote.value = "";
-  el.npGroup.value = (nodeById(state.selected) || {}).group || "notes";
+  el.npGroup.value = (nodeById(state.selected) || {}).group || "notater";
   el.npLabel.focus();
 };
 $("#npCancel").onclick = closeSlots;
@@ -770,15 +770,15 @@ $("#npAdd").onclick = async ()=>{
   mutated();
   try{
     const r = await jsend("/api/note","POST",{
-      label, group:(el.npGroup.value||"notes").trim().toLowerCase(),
+      label, group:(el.npGroup.value||"notater").trim().toLowerCase(),
       note:el.npNote.value, connectTo:state.selected
     });
     closeSlots();
     await loadBrain();
     const n = nodeById(r.id);
     if(n) openInspector(n);
-    flash("Wrote " + r.id + ".md");
-  }catch(err){ flash("Could not write: " + err.message, true); }
+    flash("Skrev " + r.id + ".md");
+  }catch(err){ flash("Fikk ikke skrevet: " + err.message, true); }
 };
 el.npLabel.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); $("#npAdd").click(); } });
 
@@ -787,8 +787,8 @@ $("#dReveal").onclick = ()=> jsend("/api/reveal","POST",{}).catch(()=>{});
 
 /* ------------------------------------------------------------- status */
 
-const PHASES = {idle:["Idle","standby"], listening:["Listening","listening"],
-                thinking:["Thinking","working"], speaking:["Speaking","speaking"], off:["Voice off","no mic"]};
+const PHASES = {idle:["Rolig","i beredskap"], listening:["Lytter","lytter"],
+                thinking:["Tenker","jobber"], speaking:["Snakker","snakker"], off:["Stemme av","ingen mikrofon"]};
 function setPhase(p){
   state.phase = p;
   const [chip, ring] = PHASES[p] || PHASES.idle;
@@ -819,7 +819,7 @@ function holdHint(msg){
 
 function titleFor(s){ const t = s.replace(/\s+/g," ").trim(); return t.length>44 ? t.slice(0,44)+"…" : t; }
 function beginSession(q){
-  el.sesBadge.textContent = "Live"; el.sesBadge.className = "badge live";
+  el.sesBadge.textContent = "Direkte"; el.sesBadge.className = "badge live";
   el.sesTitle.textContent = titleFor(q);
   el.sesUtter.textContent = q; el.sesUtter.hidden = false;
   el.sesAnswer.textContent = ""; el.sesMeta.textContent = "";
@@ -840,7 +840,7 @@ function renderLog(){
   el.log.textContent = "";
   if(!state.log.length){
     const li = document.createElement("li");
-    li.className = "empty"; li.textContent = "Nothing yet. Ask something.";
+    li.className = "empty"; li.textContent = "Ingenting ennå. Spør om noe.";
     el.log.appendChild(li); return;
   }
   for(const e of state.log){
@@ -854,7 +854,7 @@ function renderLog(){
     body.appendChild(q); body.appendChild(a);
     li.appendChild(time); li.appendChild(body);
     li.onclick = ()=>{
-      el.sesBadge.textContent = "Replay"; el.sesBadge.className = "badge";
+      el.sesBadge.textContent = "Reprise"; el.sesBadge.className = "badge";
       el.sesTitle.textContent = titleFor(e.q);
       el.sesUtter.textContent = e.q; el.sesUtter.hidden = false;
       el.sesAnswer.textContent = e.a; el.sesMeta.textContent = "";
@@ -887,8 +887,8 @@ function initRecognition(){
   if(!SR){
     el.mic.disabled = true;
     holdHint(location.protocol === "http:" && location.hostname !== "localhost"
-      ? "Voice needs a secure origin. Over the network, type instead — or reach this machine through https/Tailscale."
-      : "Voice input needs Chrome or Edge. Everything else works — type your command.");
+      ? "Stemme krever sikker origin. Over nettverket må du skrive i stedet — eller nå maskinen via https/Tailscale."
+      : "Stemmeinngang krever Chrome eller Edge. Alt annet fungerer — skriv kommandoen.");
     setPhase("off");
     return;
   }
@@ -904,7 +904,7 @@ function initRecognition(){
   rec.onerror = ev=>{
     if(ev.error==="not-allowed" || ev.error==="service-not-allowed"){
       recWanted = false;
-      holdHint("Microphone blocked. Allow it in the address bar, or type below.");
+      holdHint("Mikrofonen er blokkert. Tillat den i adressefeltet, eller skriv under.");
       setPhase("off");
     }
   };
@@ -942,9 +942,9 @@ async function ask(question){
   ctl = new AbortController();
   beginSession(question);
   setPhase("thinking");
-  el.sesAnswer.textContent = "Thinking…";
+  el.sesAnswer.textContent = "Tenker…";
   el.send.disabled = true;
-  el.tClaude.textContent = "working"; el.tClaude.className = "";
+  el.tClaude.textContent = "jobber"; el.tClaude.className = "";
 
   state.turns.push({role:"user", content:question});
   let answer = "", failed = null, sawText = false;
@@ -956,7 +956,7 @@ async function ask(question){
       body:JSON.stringify({question, history:state.turns.slice(-8), access:state.access}),
       signal:ctl.signal
     });
-    if(!res.ok || !res.body) throw new Error("The companion refused the request.");
+    if(!res.ok || !res.body) throw new Error("Følgesvennen avviste forespørselen.");
     const reader = res.body.getReader();
     const dec = new TextDecoder();
     let buf = "";
@@ -982,8 +982,8 @@ async function ask(question){
       }
     }
   }catch(e){
-    if(e.name === "AbortError") failed = "Stopped.";
-    else failed = e.message || "The companion is not reachable.";
+    if(e.name === "AbortError") failed = "Stoppet.";
+    else failed = e.message || "Følgesvennen er ikke tilgjengelig.";
   }
 
   el.send.disabled = false;
@@ -994,17 +994,17 @@ async function ask(question){
     state.turns.push({role:"assistant", content:answer});
     state.turns = state.turns.slice(-10);
     el.sesAnswer.textContent = answer;
-    el.sesBadge.textContent = failed ? "Partial" : "Ended";
+    el.sesBadge.textContent = failed ? "Delvis" : "Avsluttet";
     el.sesBadge.className = "badge" + (failed ? " err" : "");
     pushLog(question, answer);
     speak(answer);
   }else{
-    el.sesAnswer.textContent = failed || "No answer came back.";
-    el.sesBadge.textContent = "Failed";
+    el.sesAnswer.textContent = failed || "Det kom ingen svar tilbake.";
+    el.sesBadge.textContent = "Mislyktes";
     el.sesBadge.className = "badge err";
   }
   el.sesStop.hidden = true;
-  el.tClaude.textContent = failed ? "error" : "ready";
+  el.tClaude.textContent = failed ? "feil" : "klar";
   el.tClaude.className = failed ? "bad" : "";
   if(failed && answer) flash(failed, true);
   if(state.phase !== "speaking") setPhase(state.listening ? "listening" : "idle");
@@ -1022,13 +1022,13 @@ $("#cmdForm").addEventListener("submit", e=>{
 /* --------------------------------------------------------- dock/access */
 
 const ACCESS_NOTE = {
-  read:  "Jarvis can read files and search this machine. It cannot change or run anything.",
-  write: "Jarvis can also create and edit files — including writing new notes into your brain. Still no shell commands.",
-  full:  "Jarvis can run shell commands on this machine with no confirmation. Only use this when you are watching."
+  read:  "Jarvis kan lese filer og søke på denne maskinen. Den kan ikke endre eller kjøre noe.",
+  write: "Jarvis kan i tillegg lage og endre filer — inkludert å skrive nye notater i hjernen din. Fortsatt ingen skallkommandoer.",
+  full:  "Jarvis kan kjøre skallkommandoer på denne maskinen uten å spørre. Bruk dette bare mens du ser på."
 };
 function setAccess(a, ask){
   if(a === "full" && ask && !confirm(
-     "Full access lets Jarvis run any shell command on this machine without asking each time.\n\nTurn it on?")) return;
+     "Full tilgang lar Jarvis kjøre hvilken som helst skallkommando på denne maskinen uten å spørre hver gang.\n\nSkru den på?")) return;
   state.access = a;
   document.querySelectorAll("[data-access]").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.access===a)));
   el.accessNote.textContent = ACCESS_NOTE[a];
@@ -1046,7 +1046,7 @@ dWake.onclick = ()=>{
   state.wakeOnly = !state.wakeOnly;
   dWake.classList.toggle("on", state.wakeOnly);
   dWake.setAttribute("aria-pressed", String(state.wakeOnly));
-  flash(state.wakeOnly ? "I'll only act on “Jarvis, …”." : "I'll act on anything I hear.");
+  flash(state.wakeOnly ? "Jeg reagerer bare på “Jarvis, …”." : "Jeg reagerer på alt jeg hører.");
 };
 document.querySelectorAll(".modes button[data-mode]").forEach(b=>{
   b.onclick = ()=>{
@@ -1094,7 +1094,7 @@ async function boot(){
     requestAnimationFrame(frame);
   }catch(err){
     el.curtain.hidden = false;
-    el.curtainMsg.textContent = "Could not reach the companion (" + (err.message||err) + "). Start it in the jarvis/local folder:";
+    el.curtainMsg.textContent = "Fikk ikke kontakt med følgesvennen (" + (err.message||err) + "). Start den i mappa jarvis/local:";
   }
 }
 $("#retry").onclick = boot;

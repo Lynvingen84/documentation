@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Jarvis MCP server — stdio, no dependencies, Node 18+.
+ * Jarvis MCP-server — stdio, ingen avhengigheter, Node 18+.
  *
- * Runs on your machine and is registered with the Claude desktop app. The
- * hosted Jarvis artifact then reaches these tools as `host:jarvis`, which is
- * how a sandboxed web page gets to your real files.
+ * Kjører på din maskin og registreres i Claude-appen. Den publiserte Jarvis-
+ * artefakten når disse verktøyene som `host:jarvis` — slik kommer en sandkasset
+ * nettside til de virkelige filene dine.
  *
- * Read tools are annotated read-only so the app does not interrupt you for
- * them. Everything that writes is left un-annotated on purpose: the app asks
- * before it runs. The shell tool is not even listed unless you turn it on.
+ * Leseverktøy er merket read-only, så appen avbryter deg ikke for dem. Alt som
+ * skriver er bevisst umerket: appen spør først. Skallverktøyet er ikke engang
+ * listet før du skrur det på.
  */
 "use strict";
 
@@ -57,7 +57,7 @@ function log(...a) { process.stderr.write("[jarvis-mcp] " + a.join(" ") + "\n");
 function inWorkspace(rel) {
   const p = path.resolve(CFG.workspace, expandHome(String(rel || ".")));
   if (p !== CFG.workspace && !p.startsWith(CFG.workspace + path.sep)) {
-    throw new Error("That path is outside the workspace (" + CFG.workspace + ").");
+    throw new Error("Den stien ligger utenfor arbeidsområdet (" + CFG.workspace + ").");
   }
   return p;
 }
@@ -83,7 +83,7 @@ async function listFiles(dir, limit) {
 async function readFile(rel) {
   const full = inWorkspace(rel);
   const st = await fsp.stat(full);
-  if (st.isDirectory()) throw new Error("That is a directory. Use list_files.");
+  if (st.isDirectory()) throw new Error("Det er en mappe. Bruk list_files.");
   const truncated = st.size > CFG.maxFileBytes;
   const fh = await fsp.open(full, "r");
   try {
@@ -121,7 +121,7 @@ function runShell(command, timeoutMs) {
     const args = process.platform === "win32" ? ["-NoProfile", "-Command", command] : ["-c", command];
     execFile(shell, args, { cwd: CFG.workspace, timeout: timeoutMs || 20000, maxBuffer: 400000 },
       (err, stdout, stderr) => {
-        if (err && err.killed) return reject(new Error("The command timed out."));
+        if (err && err.killed) return reject(new Error("Kommandoen brukte for lang tid."));
         resolve({
           command,
           exitCode: err ? (typeof err.code === "number" ? err.code : 1) : 0,
@@ -137,8 +137,8 @@ function runShell(command, timeoutMs) {
 const TOOLS = [
   {
     name: "list_notes",
-    description: "List every note in the second brain, with its cluster and what it links to. Use this to get your bearings before answering anything about the user's notes.",
-    annotations: { title: "List notes", readOnlyHint: true },
+    description: "List alle notatene i hjernen, med klynge og hva de kobler til. Bruk denne for å orientere deg før du svarer på noe om notatene.",
+    annotations: { title: "List notater", readOnlyHint: true },
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     run: async () => {
       const b = await brain.read();
@@ -156,11 +156,11 @@ const TOOLS = [
   },
   {
     name: "read_note",
-    description: "Read one note in full, by title or filename.",
-    annotations: { title: "Read note", readOnlyHint: true },
+    description: "Les ett notat i sin helhet, etter tittel eller filnavn.",
+    annotations: { title: "Les notat", readOnlyHint: true },
     inputSchema: {
       type: "object",
-      properties: { title: { type: "string", description: "Note title or filename" } },
+      properties: { title: { type: "string", description: "Notattittel eller filnavn" } },
       required: ["title"], additionalProperties: false
     },
     run: async ({ title }) => {
@@ -175,8 +175,8 @@ const TOOLS = [
   },
   {
     name: "search_brain",
-    description: "Search note titles and bodies for a term, and get the matches with their links.",
-    annotations: { title: "Search brain", readOnlyHint: true },
+    description: "Søk i notattitler og -tekst etter et ord, og få treffene med koblingene deres.",
+    annotations: { title: "Søk i hjernen", readOnlyHint: true },
     inputSchema: {
       type: "object",
       properties: {
@@ -189,17 +189,17 @@ const TOOLS = [
   },
   {
     name: "write_note",
-    description: "Capture a new note in the second brain, optionally linked to notes that already exist. Writes a real markdown file.",
-    annotations: { title: "Write note" },
+    description: "Fang et nytt notat i hjernen, eventuelt koblet til notater som allerede finnes. Skriver en ekte markdown-fil.",
+    annotations: { title: "Skriv notat" },
     inputSchema: {
       type: "object",
       properties: {
-        title: { type: "string", description: "Short title, under 60 characters" },
-        group: { type: "string", description: "Cluster: content, systems, research, money, clients, projects, notes…" },
-        body: { type: "string", description: "One or two sentences of substance" },
+        title: { type: "string", description: "Kort tittel, under 60 tegn" },
+        group: { type: "string", description: "Klynge: innhold, systemer, research, penger, kunder, prosjekter, notater…" },
+        body: { type: "string", description: "Én eller to setninger med substans" },
         related: {
           type: "array", items: { type: "string" },
-          description: "Titles of existing notes to link this one to"
+          description: "Titler på eksisterende notater å koble dette til"
         }
       },
       required: ["title"], additionalProperties: false
@@ -211,8 +211,8 @@ const TOOLS = [
   },
   {
     name: "link_notes",
-    description: "Relate two notes that already exist, by adding a wiki link to the first one.",
-    annotations: { title: "Link notes" },
+    description: "Knytt sammen to notater som allerede finnes, ved å legge en wikilenke i det første.",
+    annotations: { title: "Koble notater" },
     inputSchema: {
       type: "object",
       properties: { from: { type: "string" }, to: { type: "string" } },
@@ -222,8 +222,8 @@ const TOOLS = [
   },
   {
     name: "trash_note",
-    description: "Move a note into the brain's .trash folder. Nothing is deleted permanently.",
-    annotations: { title: "Trash note" },
+    description: "Flytt et notat til hjernens .trash-mappe. Ingenting slettes for godt.",
+    annotations: { title: "Kast notat" },
     inputSchema: {
       type: "object",
       properties: { title: { type: "string" } },
@@ -233,12 +233,12 @@ const TOOLS = [
   },
   {
     name: "list_files",
-    description: "List files and folders inside the workspace. Use this to answer questions about projects and downloads.",
-    annotations: { title: "List files", readOnlyHint: true },
+    description: "List filer og mapper i arbeidsområdet. Bruk denne for spørsmål om prosjekter og nedlastinger.",
+    annotations: { title: "List filer", readOnlyHint: true },
     inputSchema: {
       type: "object",
       properties: {
-        dir: { type: "string", description: "Path relative to the workspace. Omit for the workspace root." },
+        dir: { type: "string", description: "Sti relativt til arbeidsområdet. Utelat for roten." },
         limit: { type: "integer", minimum: 1, maximum: 500 }
       },
       additionalProperties: false
@@ -247,22 +247,22 @@ const TOOLS = [
   },
   {
     name: "read_file",
-    description: "Read a text file inside the workspace. Long files come back truncated.",
-    annotations: { title: "Read file", readOnlyHint: true },
+    description: "Les en tekstfil i arbeidsområdet. Lange filer kommer avkortet tilbake.",
+    annotations: { title: "Les fil", readOnlyHint: true },
     inputSchema: {
       type: "object",
-      properties: { path: { type: "string", description: "Path relative to the workspace" } },
+      properties: { path: { type: "string", description: "Sti relativt til arbeidsområdet" } },
       required: ["path"], additionalProperties: false
     },
     run: async ({ path: rel }) => readFile(rel)
   },
   {
     name: "reveal",
-    description: "Show a file or folder in Finder, Explorer or the desktop file manager.",
-    annotations: { title: "Reveal in file manager" },
+    description: "Vis en fil eller mappe i Finder, Utforsker eller skrivebordets filbehandler.",
+    annotations: { title: "Vis i filbehandler" },
     inputSchema: {
       type: "object",
-      properties: { path: { type: "string", description: "Path relative to the workspace. Omit for the brain folder." } },
+      properties: { path: { type: "string", description: "Sti relativt til arbeidsområdet. Utelat for hjernemappa." } },
       additionalProperties: false
     },
     run: async ({ path: rel }) => {
@@ -273,8 +273,8 @@ const TOOLS = [
   },
   {
     name: "notify",
-    description: "Show a desktop notification on this machine.",
-    annotations: { title: "Desktop notification" },
+    description: "Vis et skrivebordsvarsel på denne maskinen.",
+    annotations: { title: "Skrivebordsvarsel" },
     inputSchema: {
       type: "object",
       properties: { title: { type: "string" }, body: { type: "string" } },
@@ -287,8 +287,8 @@ const TOOLS = [
 if (CFG.allowShell) {
   TOOLS.push({
     name: "run_command",
-    description: "Run a shell command in the workspace and return its output. Only available because this machine has it explicitly enabled.",
-    annotations: { title: "Run command", destructiveHint: true },
+    description: "Kjør en skallkommando i arbeidsområdet og returner utdata. Bare tilgjengelig fordi denne maskinen har det eksplisitt påskrudd.",
+    annotations: { title: "Kjør kommando", destructiveHint: true },
     inputSchema: {
       type: "object",
       properties: {
@@ -346,7 +346,7 @@ async function handle(msg) {
     case "tools/call": {
       const name = params && params.name;
       const tool = BY_NAME.get(name);
-      if (!tool) return fail(id, -32602, "No tool called \"" + name + "\".");
+      if (!tool) return fail(id, -32602, "Fant ingen verktøy som heter \"" + name + "\".");
       try {
         const out = await tool.run((params && params.arguments) || {});
         return reply(id, {
@@ -370,7 +370,7 @@ async function handle(msg) {
     case "prompts/list":    return isRequest ? reply(id, { prompts: [] }) : undefined;
 
     default:
-      if (isRequest) return fail(id, -32601, "Method not supported: " + method);
+      if (isRequest) return fail(id, -32601, "Metoden støttes ikke: " + method);
   }
 }
 
