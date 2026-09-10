@@ -166,7 +166,7 @@ const TOOLS = [
     run: async ({ title }) => {
       const b = await brain.read();
       const n = brain.resolve(b.nodes, title);
-      if (!n) throw new Error("No note called \"" + title + "\".");
+      if (!n) throw new Error("Fant ingen notat som heter \"" + title + "\".");
       return {
         title: n.label, group: n.group, file: n.file, body: n.note,
         linked: b.links.filter(l => l.s === n.id || l.t === n.id).map(l => (l.s === n.id ? l.t : l.s))
