@@ -419,16 +419,22 @@ void pollTouch() {
 // ---------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);
+  // Vent litt før noe annet startes. Krasjer noe senere i oppstarten,
+  // rekker PC-en likevel å koble til USB-en for ny opplasting.
+  delay(3000);
+  Serial.println("[skjerm] start");
 
   tft.init();
+  Serial.println("[skjerm] tft.init OK");
   tft.setRotation(1);  // liggende, samme som garasjepanelet
   tft.setBrightness(200);
   tft.fillScreen(TFT_BLACK);
+  Serial.println("[skjerm] skjerm OK");
 
   memset(&status, 0, sizeof(status));
   cmdSeq = esp_random();  // ny sekvens etter omstart, så kontrolleren ikke ignorerer oss
   setupRadio();
-  Serial.print("Skjerm MAC: ");
+  Serial.print("[skjerm] radio OK, MAC: ");
   Serial.println(WiFi.macAddress());
   invalidate();
 }
