@@ -9,6 +9,7 @@
 
 #include <SkyteProtokoll.h>
 
+#include "Button.h"
 #include "Display_ES3C28P.h"
 
 #define SCREEN_W 320
@@ -89,7 +90,7 @@ void setupRadio() {
 
 // Broadcast har ingen kvittering, så kommandoen sendes 3 ganger med samme
 // sekvensnummer. Kontrolleren ignorerer duplikatene.
-void sendCommand(uint8_t cmd, uint8_t arg = 0, int16_t value = 0) {
+void sendCommand(uint8_t cmd, uint8_t arg, int16_t value) {
   CmdMsg c = {};
   fillHeader(c.h, MSG_CMD);
   c.cmd = cmd;
@@ -105,16 +106,12 @@ void sendCommand(uint8_t cmd, uint8_t arg = 0, int16_t value = 0) {
 // ---------------------------------------------------------------------------
 // Knapper
 // ---------------------------------------------------------------------------
-struct Button {
-  int16_t x, y, w, h;
-};
-
 bool hit(const Button& b, int16_t x, int16_t y) {
   return x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;
 }
 
-void drawButton(const Button& b, const char* label, uint16_t color, bool enabled,
-                uint8_t font = 4) {
+void drawButton(const Button& b, const char* label, uint16_t color, bool enabled) {
+  const uint8_t font = 4;
   uint16_t fill = enabled ? color : TFT_DARKGREY;
   tft.fillRoundRect(b.x, b.y, b.w, b.h, 8, fill);
   tft.drawRoundRect(b.x, b.y, b.w, b.h, 8, TFT_WHITE);
@@ -390,15 +387,15 @@ void onTap(int16_t x, int16_t y) {
 
   if (!on) return;
   if (hit(BTN_STOP, x, y)) {
-    sendCommand(CMD_STOP);
+    sendCommand(CMD_STOP, 0, 0);
   } else if (run) {
     return;  // alt annet er låst mens serien går
   } else if (hit(BTN_START, x, y)) {
-    sendCommand(CMD_START);
+    sendCommand(CMD_START, 0, 0);
   } else if (hit(BTN_PREV, x, y)) {
-    sendCommand(CMD_SELECT, (status.program + PROGRAM_COUNT - 1) % PROGRAM_COUNT);
+    sendCommand(CMD_SELECT, (status.program + PROGRAM_COUNT - 1) % PROGRAM_COUNT, 0);
   } else if (hit(BTN_NEXT, x, y)) {
-    sendCommand(CMD_SELECT, (status.program + 1) % PROGRAM_COUNT);
+    sendCommand(CMD_SELECT, (status.program + 1) % PROGRAM_COUNT, 0);
   } else if (hit(BTN_LUFT, x, y)) {
     sendCommand(CMD_SET, P_LUFT, status.luft ? 0 : 1);
   } else if (hit(BTN_MENU, x, y)) {
