@@ -1,38 +1,35 @@
 // Skjerm/fjernkontroll for skyteanlegget.
-// Laget for ESP32-2432S028R ("Cheap Yellow Display", 2,8" ILI9341 + XPT2046 touch).
+// Laget for LCDWIKI ES3C28P (ESP32-S3, 2,8" ILI9341V + FT6336 touch).
 // Velg program, start/stopp, bytt mellom 25m og luftpistol og juster tider.
 
 #include <Arduino.h>
-#include <SPI.h>
-#include <TFT_eSPI.h>
 #include <WiFi.h>
-#include <XPT2046_Touchscreen.h>
 #include <esp_now.h>
 #include <esp_wifi.h>
 
 #include <SkyteProtokoll.h>
 
-// ---------------------------------------------------------------------------
-// Touch (CYD bruker egen SPI-buss for touch)
-// ---------------------------------------------------------------------------
-#define TOUCH_IRQ 36
-#define TOUCH_MOSI 32
-#define TOUCH_MISO 39
-#define TOUCH_CLK 25
-#define TOUCH_CS 33
-
-// Kalibrering: juster hvis trykk havner feil sted (se README)
-#define TOUCH_X_MIN 200
-#define TOUCH_X_MAX 3700
-#define TOUCH_Y_MIN 240
-#define TOUCH_Y_MAX 3800
+#include "Display_ES3C28P.h"
 
 #define SCREEN_W 320
 #define SCREEN_H 240
 
-TFT_eSPI tft;
-SPIClass touchSpi(VSPI);
-XPT2046_Touchscreen touch(TOUCH_CS, TOUCH_IRQ);
+LGFX_ES3C28P tft;
+
+// Fontnumrene er de samme som i TFT_eSPI: 1 = liten, 2, 4 og 7 (7-segment)
+const lgfx::IFont* fontFor(uint8_t n) {
+  switch (n) {
+    case 1: return &fonts::Font0;
+    case 4: return &fonts::Font4;
+    case 7: return &fonts::Font7;
+  }
+  return &fonts::Font2;
+}
+
+void drawText(const char* text, int32_t x, int32_t y, uint8_t font) {
+  tft.setFont(fontFor(font));
+  tft.drawString(text, x, y);
+}
 
 static const uint8_t BROADCAST[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -124,7 +121,7 @@ void drawButton(const Button& b, const char* label, uint16_t color, bool enabled
   tft.setTextDatum(MC_DATUM);
   tft.setTextPadding(0);
   tft.setTextColor(enabled && color == TFT_GREEN ? TFT_BLACK : TFT_WHITE, fill);
-  tft.drawString(label, b.x + b.w / 2, b.y + b.h / 2 + 1, font);
+  drawText(label, b.x + b.w / 2, b.y + b.h / 2 + 1, font);
 }
 
 // Hovedskjerm
@@ -184,16 +181,16 @@ void drawHeader(const char* title) {
   tft.setTextDatum(ML_DATUM);
   tft.setTextPadding(0);
   tft.setTextColor(TFT_WHITE, TFT_NAVY);
-  tft.drawString(title, 6, 13, 2);
+  drawText(title, 6, 13, 2);
   tft.setTextDatum(MR_DATUM);
   if (connected()) {
     char buf[24];
     snprintf(buf, sizeof(buf), "Serier: %u", status.seriesDone);
     tft.setTextColor(TFT_GREEN, TFT_NAVY);
-    tft.drawString(buf, SCREEN_W - 6, 13, 2);
+    drawText(buf, SCREEN_W - 6, 13, 2);
   } else {
     tft.setTextColor(TFT_ORANGE, TFT_NAVY);
-    tft.drawString("Ingen kontakt", SCREEN_W - 6, 13, 2);
+    drawText("Ingen kontakt", SCREEN_W - 6, 13, 2);
   }
 }
 
@@ -205,17 +202,17 @@ void drawProgram() {
   if (!haveStatus) {
     tft.setTextDatum(MC_DATUM);
     tft.setTextColor(TFT_LIGHTGREY, TFT_BLACK);
-    tft.drawString("Venter pa kontroller...", 160, 53, 2);
+    drawText("Venter pa kontroller...", 160, 53, 2);
     return;
   }
   uint8_t p = status.program < PROGRAM_COUNT ? status.program : 0;
   tft.setTextDatum(MC_DATUM);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.drawString(PROGRAMS[p].name, 160, 43, 4);
+  drawText(PROGRAMS[p].name, 160, 43, 4);
   char desc[48];
   describeProgram(p, statusSettings(), desc, sizeof(desc));
   tft.setTextColor(TFT_LIGHTGREY, TFT_BLACK);
-  tft.drawString(desc, 160, 68, 2);
+  drawText(desc, 160, 68, 2);
 }
 
 void drawLamp() {
@@ -244,13 +241,13 @@ void drawPhase() {
   }
   tft.setTextDatum(ML_DATUM);
   tft.setTextColor(color, TFT_BLACK);
-  tft.drawString(text, 104, 166, 4);
+  drawText(text, 104, 166, 4);
   if (connected() && status.shot > 0) {
     char buf[16];
     snprintf(buf, sizeof(buf), "Skudd %u/%u", status.shot, status.shots);
     tft.setTextDatum(MR_DATUM);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.drawString(buf, 314, 166, 4);
+    drawText(buf, 314, 166, 4);
   }
 }
 
@@ -264,7 +261,7 @@ void drawTime(const char* text) {
     else color = TFT_RED;
   }
   tft.setTextColor(color, TFT_BLACK);
-  tft.drawString(text, 208, 112, 7);  // font 7 = 7-segment, 48 px
+  drawText(text, 208, 112, 7);  // font 7 = 7-segment, 48 px
   tft.setTextPadding(0);
 }
 
@@ -287,7 +284,7 @@ void drawSettings() {
     uint8_t p = SETTING_PARAMS[r];
     tft.setTextDatum(ML_DATUM);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.drawString(SETTING_LABELS[r], 6, y, 2);
+    drawText(SETTING_LABELS[r], 6, y, 2);
     drawButton(minusBtn(r), "-", TFT_BLUE, connected());
     drawButton(plusBtn(r), "+", TFT_BLUE, connected());
     char buf[12];
@@ -296,11 +293,11 @@ void drawSettings() {
     else snprintf(buf, sizeof(buf), "%ds", v);
     tft.setTextDatum(MC_DATUM);
     tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-    tft.drawString(buf, 243, y, 2);
+    drawText(buf, 243, y, 2);
   }
   tft.setTextDatum(ML_DATUM);
   tft.setTextColor(TFT_LIGHTGREY, TFT_BLACK);
-  tft.drawString("Luft-pausen brukes i duell nar LUFT er valgt.", 6, 183, 1);
+  drawText("Luft-pausen brukes i duell nar LUFT er valgt.", 6, 183, 1);
   drawButton(BTN_BACK, "TILBAKE", TFT_BLUE, true);
 }
 
@@ -363,12 +360,10 @@ void render() {
 // Touch
 // ---------------------------------------------------------------------------
 bool readTouch(int16_t& x, int16_t& y) {
-  if (!(touch.tirqTouched() && touch.touched())) return false;
-  TS_Point p = touch.getPoint();
-  long tx = map(p.x, TOUCH_X_MIN, TOUCH_X_MAX, 0, SCREEN_W - 1);
-  long ty = map(p.y, TOUCH_Y_MIN, TOUCH_Y_MAX, 0, SCREEN_H - 1);
-  x = tx < 0 ? 0 : tx > SCREEN_W - 1 ? SCREEN_W - 1 : tx;
-  y = ty < 0 ? 0 : ty > SCREEN_H - 1 ? SCREEN_H - 1 : ty;
+  int32_t tx, ty;
+  if (!tft.getTouch(&tx, &ty)) return false;
+  x = tx;
+  y = ty;
   return true;
 }
 
@@ -429,12 +424,9 @@ void setup() {
   Serial.begin(115200);
 
   tft.init();
-  tft.setRotation(1);  // liggende, USB til høyre
+  tft.setRotation(1);  // liggende, samme som garasjepanelet
+  tft.setBrightness(200);
   tft.fillScreen(TFT_BLACK);
-
-  touchSpi.begin(TOUCH_CLK, TOUCH_MISO, TOUCH_MOSI, TOUCH_CS);
-  touch.begin(touchSpi);
-  touch.setRotation(1);
 
   memset(&status, 0, sizeof(status));
   cmdSeq = esp_random();  // ny sekvens etter omstart, så kontrolleren ikke ignorerer oss

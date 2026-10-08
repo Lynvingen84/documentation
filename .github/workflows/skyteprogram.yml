@@ -1,0 +1,59 @@
+name: Skyteprogram firmware
+
+on:
+  push:
+    paths:
+      - "esp32-skyteprogram/**"
+      - ".github/workflows/skyteprogram.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Bygg ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: skyte_kontroller
+            chip: esp32c6
+          - project: skyte_skjerm
+            chip: esp32s3
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ matrix.project }}-${{ hashFiles(format('esp32-skyteprogram/{0}/platformio.ini', matrix.project)) }}
+
+      - name: Installer PlatformIO
+        run: pip install platformio esptool==4.8.1
+
+      - name: Test tidsmotoren
+        if: matrix.project == 'skyte_kontroller'
+        working-directory: esp32-skyteprogram/test
+        run: g++ -std=c++17 -Wall -I../libraries/SkyteProtokoll/src -I../skyte_kontroller test_engine.cpp -o test_engine && ./test_engine
+
+      - name: Bygg
+        run: pio run -d esp32-skyteprogram/${{ matrix.project }}
+
+      - name: Lag én fil for nettleser-opplasting
+        run: |
+          set -e
+          B=$(ls -d esp32-skyteprogram/${{ matrix.project }}/.pio/build/*/ | head -1)
+          APP0=$(find ~/.platformio -name boot_app0.bin | head -1)
+          mkdir -p out
+          python -m esptool --chip ${{ matrix.chip }} merge_bin -o out/${{ matrix.project }}_full.bin \
+            0x0 "$B/bootloader.bin" 0x8000 "$B/partitions.bin" 0xe000 "$APP0" 0x10000 "$B/firmware.bin"
+          cp "$B/firmware.bin" out/${{ matrix.project }}_app.bin
+          ls -l out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.project }}
+          path: out/*.bin
