@@ -6,7 +6,7 @@ Anlegget har to deler:
 | Enhet | Oppgave |
 |---|---|
 | **ESP32-C6** (`skyte_kontroller/`) | Styrer rødt og grønt lys (og en summer) med nøyaktig timing. Husker innstillingene. |
-| **ESP32 med touch-skjerm** (`skyte_skjerm/`) | Fjernkontroll: velg program, START/STOPP, bytt mellom 25m og luftpistol, juster tider. |
+| **LCDWIKI ES3C28P** touch-skjerm (`skyte_skjerm/`) | Fjernkontroll: velg program, START/STOPP, bytt mellom 25m og luftpistol, juster tider. |
 
 De to snakker trådløst med **ESP-NOW**. Det trengs ingen ruter eller WiFi-nett,
 og rekkevidden er typisk 50–100 m innendørs.
@@ -40,7 +40,7 @@ Innstillingene lagres i ESP32-C6 og blir husket etter strømbrudd.
 ## Maskinvare
 
 - ESP32-C6-DevKitC-1 (eller annet C6-kort)
-- ESP32-2432S028R, "Cheap Yellow Display" (2,8" ILI9341 med touch). Andre skjermer går også, men da må du endre pinner og driver.
+- LCDWIKI ES3C28P (ESP32-S3, 2,8" ILI9341V med FT6336 touch), samme kort som i garasjepanelet. Pinnene står i `skyte_skjerm/Display_ES3C28P.h`.
 - Rød og grønn lampe (f.eks. 12 V LED-lamper)
 - 2 × logic-level MOSFET (f.eks. IRLZ44N / AO3400) **eller** en 2-kanals relémodul
 - Valgfritt: aktiv summer (5 V/3,3 V) for pip ved grønt lys og når serien er ferdig
@@ -74,20 +74,30 @@ Den innebygde RGB-LED-en på C6-kortet lyser i samme farge som lampene, så du k
 
 ## Installering
 
-### Med PlatformIO (anbefalt)
+### Enklest: ferdige filer fra GitHub + nettleseren
+Hver gang koden endres, bygger GitHub ferdige firmware-filer.
+
+1. Gå til **Actions → Skyteprogram firmware** i repoet og åpne den siste grønne kjøringen.
+2. Last ned `skyte_skjerm` (og `skyte_kontroller`) under **Artifacts**, og pakk ut zip-filen.
+3. Åpne https://espressif.github.io/esptool-js/ i **Chrome eller Edge**.
+4. Plugg kortet i USB-C og trykk **Connect**. Velg porten (ES3C28P vises som *USB JTAG/serial debug unit*).
+5. Sett **Flash Address** til `0x0`, velg filen `..._full.bin` og trykk **Program**.
+6. Når den er ferdig, trykker du på RESET-knappen på kortet eller trekker ut USB-pluggen og setter den i igjen.
+
+Finner nettleseren ikke kortet, holder du inne **BOOT**, trykker kort på **RESET** og slipper BOOT. Prøv Connect på nytt.
+
+### Med PlatformIO
 ```bash
 cd skyte_kontroller && pio run -t upload && pio device monitor
 cd skyte_skjerm     && pio run -t upload
 ```
-Alt oppsett ligger i `platformio.ini`, også TFT-oppsettet for skjermen.
 
 ### Med Arduino IDE
 1. Kopier mappen `libraries/SkyteProtokoll` til `Dokumenter/Arduino/libraries/`.
-2. **Kontroller:** installer *esp32 by Espressif* **versjon 3.x** under Boards Manager.
-   Velg kortet *ESP32C6 Dev Module* og last opp `skyte_kontroller/skyte_kontroller.ino`.
-3. **Skjerm:** installer bibliotekene *TFT_eSPI* (Bodmer) og *XPT2046_Touchscreen* (Paul Stoffregen).
-   Erstatt innholdet i `Arduino/libraries/TFT_eSPI/User_Setup.h` med `skyte_skjerm/User_Setup_CYD.h`.
-   Velg kortet *ESP32 Dev Module* og last opp `skyte_skjerm/skyte_skjerm.ino`.
+2. Installer *esp32 by Espressif* **versjon 3.x** under Boards Manager.
+3. **Kontroller:** velg *ESP32C6 Dev Module* og last opp `skyte_kontroller/skyte_kontroller.ino`.
+4. **Skjerm:** installer biblioteket *LovyanGFX*. Velg *ESP32S3 Dev Module* og sett *USB CDC On Boot: Enabled*.
+   Last opp `skyte_skjerm/skyte_skjerm.ino`.
 
 ## Bruk
 1. Slå på begge enhetene. Øverst til høyre på skjermen står antall serier når den har kontakt med kontrolleren.
@@ -102,8 +112,9 @@ Alt oppsett ligger i `platformio.ini`, også TFT-oppsettet for skjermen.
 |---|---|
 | "Ingen kontakt" | Sjekk at begge enhetene har samme `ESPNOW_CHANNEL` og `SKYTE_GROUP` i `SkyteProtokoll.h`. |
 | To anlegg i samme hall forstyrrer hverandre | Gi hvert anlegg sin egen `SKYTE_GROUP`. |
-| Skjermen er hvit eller viser feil farger | Bytt `ILI9341_2_DRIVER` til `ILI9341_DRIVER` eller `ST7789_DRIVER`. Noen CYD-varianter trenger også `tft.invertDisplay(true)`. |
-| Touch treffer feil sted | Juster `TOUCH_X_MIN/MAX` og `TOUCH_Y_MIN/MAX` i `skyte_skjerm.ino`. Er aksene speilvendt, bytter du min og max. |
+| Fargene er negative (svart ser hvitt ut) | Sett `cfg.invert = false` i `Display_ES3C28P.h`. |
+| Rødt og blått er byttet om | Sett `cfg.rgb_order = true` i `Display_ES3C28P.h`. |
+| Touch treffer feil sted | Endre touch-`offset_rotation` (0–7) i `Display_ES3C28P.h`. |
 | Lampene er "omvendt" | Sett `OUTPUT_ACTIVE_HIGH = false`. |
 
 ## Test av tidsmotoren på PC
