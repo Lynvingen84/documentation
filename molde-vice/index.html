@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<style>*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Molde Vice</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Barlow+Condensed:wght@500;700&display=swap">
+<style>
+/* Layout: full-screen city canvas, HUD pinned to the corners, thumb controls at the bottom */
+:root{
+  color-scheme:dark;
+  --night:#0d1a21; --fjord:#12303f; --rose:#ff5d8f; --sun:#ffc857; --moss:#3f7d5a; --paper:#f3ece0;
+  --panel:rgba(13,26,33,.78);
+  --display:"Bowlby One","Arial Black",Impact,sans-serif;
+  --ui:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+}
+html,body{height:100%}
+body{background:var(--night);color:var(--paper);font-family:var(--ui);font-size:18px;overflow:hidden;
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#game{position:relative;height:100%;overflow:hidden}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none}
+.stats{display:flex;flex-direction:column;gap:2px;background:var(--panel);padding:6px 12px;border-radius:6px}
+#money{font-weight:700;font-size:24px;color:var(--sun);font-variant-numeric:tabular-nums}
+#stars{letter-spacing:.12em;color:var(--rose);font-size:18px}
+#mini{width:110px;height:auto;border:2px solid var(--panel);border-radius:6px;image-rendering:pixelated;background:var(--fjord)}
+#mission{position:absolute;left:0;right:0;top:92px;margin:auto;width:max-content;max-width:calc(100% - 32px);
+  background:var(--panel);padding:6px 14px;border-radius:6px;text-align:center;font-weight:500;line-height:1.25;pointer-events:none}
+#mission b{color:var(--sun);font-weight:700}
+#toast{position:absolute;left:0;right:0;top:38%;margin:auto;width:max-content;max-width:calc(100% - 32px);
+  font-family:var(--display);font-size:22px;color:var(--rose);text-align:center;text-shadow:0 2px 0 var(--night);pointer-events:none}
+#act{position:absolute;right:max(20px,env(safe-area-inset-right,0px));bottom:calc(28px + env(safe-area-inset-bottom,0px));
+  width:92px;height:92px;border-radius:50%;border:3px solid var(--rose);background:var(--panel);color:var(--paper);
+  font-family:var(--display);font-size:20px;cursor:pointer}
+#act:active{background:var(--rose);color:var(--night)}
+#act:disabled{border-color:#55636b;color:#7d8a91}
+button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+#intro{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:linear-gradient(rgba(13,26,33,.55),rgba(13,26,33,.9));text-align:center;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#intro h1{font-family:var(--display);font-weight:400;font-size:clamp(44px,13vw,96px);line-height:.9;margin:0;color:var(--paper);text-wrap:balance}
+#intro h1 span{color:var(--rose);display:block}
+#intro p{margin:0;max-width:34ch;line-height:1.35}
+#intro .tag{letter-spacing:.18em;text-transform:uppercase;color:var(--sun);font-weight:700;font-size:15px}
+#start{font-family:var(--display);font-size:24px;padding:12px 40px;border-radius:999px;border:0;background:var(--rose);color:var(--night);cursor:pointer;margin-top:6px}
+</style>
+
+<div id="game">
+  <canvas id="c"></canvas>
+  <div class="hud">
+    <div class="stats"><span id="money">0 kr</span><span id="stars" aria-label="Ettersøkt-nivå"></span></div>
+    <canvas id="mini" width="100" height="74" aria-label="Kart"></canvas>
+  </div>
+  <div id="mission"></div>
+  <div id="toast" hidden></div>
+  <button id="act" type="button">Inn</button>
+  <div id="intro">
+    <p class="tag">Rosenes by · sommernatt</p>
+    <h1>Molde <span>Vice</span></h1>
+    <p>Kjør oppdrag mellom Varden og kaia, tjen kroner og hold deg unna politiet.</p>
+    <p>Dra tommelen på skjermen for å styre. Trykk <b>Inn</b> ved en bil for å kjøre. På tastatur: piltaster og E.</p>
+    <button id="start" type="button">Start</button>
+  </div>
+</div>
+
+<script>
+(() => {
+const T=64, W=50, H=37, COAST=30, PI=Math.PI;
+const G=0, R=1, B=2, WA=3, S=4, P=5, Q=6, PITCH=7, FOREST=8;
+const DX=[1,0,-1,0], DY=[0,1,0,-1];
+const $=id=>document.getElementById(id);
+const cv=$('c'), ctx=cv.getContext('2d'), mini=$('mini'), mctx=mini.getContext('2d');
+const clamp=(v,a,b)=>v<a?a:v>b?b:v, rnd=Math.random, ri=n=>Math.floor(rnd()*n);
+const hash=(x,y)=>{let h=(x*374761393+y*668265263)|0;h=(h^(h>>>13))*1274126177|0;return (h^(h>>>16))>>>0};
+const angDiff=(a,b)=>((a-b+PI)%(2*PI)+2*PI)%(2*PI)-PI;
+const isCol=x=>x%7===0, isRow=y=>y%6===0&&y<=COAST;
+
+/* ---------- city ---------- */
+const map=new Uint8Array(W*H), roof=new Uint8Array(W*H);
+const special={'2,2':'park','5,0':'park','5,4':'stadium','0,4':'park'};
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  let t;
+  if(y>COAST+1)t=WA; else if(y===COAST+1)t=Q; else if(isRow(y)||isCol(x))t=R;
+  else{
+    const bx=Math.floor(x/7), by=Math.floor(y/6), lx=x%7, ly=y%6, kind=special[bx+','+by];
+    const edge=lx===1||lx===6||ly===1||ly===5;
+    if(kind==='park')t=P; else if(kind==='stadium')t=edge?S:PITCH;
+    else if(edge)t=S; else{t=B; roof[x+y*W]=(bx+by*7)*2+(lx<4?1:2)}
+  }
+  map[x+y*W]=t;
+}
+const tile=(x,y)=>y>=H?WA:(x<0||y<0||x>=W)?FOREST:map[x+y*W];
+const solidT=t=>t===B||t===WA||t===FOREST;
+const solidAt=(x,y)=>solidT(tile(Math.floor(x/T),Math.floor(y/T)));
+const solidCirc=(x,y,r)=>solidAt(x-r,y-r)||solidAt(x+r,y-r)||solidAt(x-r,y+r)||solidAt(x+r,y+r);
+function moveCirc(o,vx,vy,r){let hit=false;
+  if(!solidCirc(o.x+vx,o.y,r))o.x+=vx; else hit=true;
+  if(!solidCirc(o.x,o.y+vy,r))o.y+=vy; else hit=true;
+  return hit}
+
+const place=(ix,iy)=>({x:ix*7*T+32,y:iy*6*T+32});
+const PLACES={'Rådhuset':place(3,3),'Aker stadion':place(6,5),'Kaia':place(2,5),'Varden':place(5,0),'Rosehagen':place(3,2),
+  'Jazzklubben':place(1,3),'Romsdalsmuseet':place(0,1),'Moldebadet':place(4,5),'Politihuset':place(4,2)};
+const MISSIONS=[
+  {title:'Roser til kampen',from:'Rosehagen',to:'Aker stadion',text:'Lever rosene til Aker stadion før avspark',pay:150},
+  {title:'Jazz på kaia',from:'Jazzklubben',to:'Kaia',text:'Saksofonisten er sent ute. Kjør til Kaia',pay:200},
+  {title:'Ferske reker',from:'Kaia',to:'Varden',text:'Få rekene opp til Varden mens de er kalde',pay:300},
+  {title:'Museumsvakta',from:'Romsdalsmuseet',to:'Rådhuset',text:'Kjør vakta til Rådhuset',pay:350},
+  {title:'Badetid',from:'Rådhuset',to:'Moldebadet',text:'Ordføreren rekker ikke badet. Kjør til Moldebadet',pay:400},
+  {title:'Panoramaturen',from:'Aker stadion',to:'Romsdalsmuseet',text:'Turistene vil se hele byen. Kjør til Romsdalsmuseet',pay:500}
+];
+
+/* ---------- state ---------- */
+const p={x:22.5*T,y:19.5*T,a:0,car:null};
+let cars=[], peds=[], money=0, wanted=0, calm=0, bustT=0, mi=0, active=null, started=false, time=0, upkeep=0, hitCd=0;
+const CAR_COLORS=['#c94f4f','#d9a441','#4f8fc9','#7bbf8e','#b9b4a8','#9a6fc4','#e07b39'];
+const PED_COLORS=['#e8c39e','#9ad1d4','#f2a65a','#c3b1e1','#b5d99c','#f28482'];
+
+const laneSnap=c=>{const tx=Math.floor(c.x/T),ty=Math.floor(c.y/T);
+  if(c.dir===0)c.y=ty*T+48; else if(c.dir===2)c.y=ty*T+16; else if(c.dir===1)c.x=tx*T+16; else c.x=tx*T+48};
+function roadSpot(minD,maxD){
+  for(let i=0;i<50;i++){
+    const horiz=rnd()<.5; let tx,ty;
+    if(horiz){ty=6*ri(6);tx=ri(W);if(isCol(tx))continue}else{tx=7*ri(8);ty=ri(COAST+1);if(isRow(ty))continue}
+    const d=Math.hypot(tx*T+32-p.x,ty*T+32-p.y);
+    if(d>=minD&&d<=maxD)return{tx,ty,horiz};
+  }
+  return null}
+function newCar(x,y,a,kind,cop){
+  const c={x,y,a,sp:0,kind,cop:!!cop,chase:false,color:cop?'#eef1f4':CAR_COLORS[ri(CAR_COLORS.length)],
+    dir:0,lastT:-1,next:null,free:false,forceGrid:0,stuck:0};
+  cars.push(c);return c}
+function spawnTraffic(minD,maxD,cop){
+  const s=roadSpot(minD,maxD); if(!s)return null;
+  const c=newCar(s.tx*T+32,s.ty*T+32,0,'civ',cop);
+  c.dir=s.horiz?(rnd()<.5?0:2):(rnd()<.5?1:3); c.a=c.dir*PI/2; laneSnap(c); return c}
+function spawnParked(minD,maxD){
+  const s=roadSpot(minD,maxD); if(!s)return;
+  const o=rnd()<.5?1:-1, tx=s.tx+(s.horiz?0:o), ty=s.ty+(s.horiz?o:0);
+  if(tile(tx,ty)!==S)return;
+  newCar(tx*T+32,ty*T+32,s.horiz?0:PI/2,'parked')}
+function spawnPed(minD,maxD){
+  for(let i=0;i<30;i++){
+    const tx=Math.floor(p.x/T)+ri(37)-18, ty=Math.floor(p.y/T)+ri(37)-18, t=tile(tx,ty);
+    if(t!==S&&t!==Q&&t!==P&&t!==PITCH)continue;
+    const x=tx*T+32,y=ty*T+32,d=Math.hypot(x-p.x,y-p.y);
+    if(d<minD||d>maxD)continue;
+    peds.push({x,y,gx:x,gy:y,state:'walk',t:0,color:PED_COLORS[ri(PED_COLORS.length)]});return}
+}
+function maintain(first){
+  const far=o=>Math.hypot(o.x-p.x,o.y-p.y);
+  cars=cars.filter(c=>c.kind==='player'||c.chase||far(c)<1500);
+  peds=peds.filter(q=>far(q)<1300);
+  let civ=0,park=0; for(const c of cars){if(c.kind==='civ'&&!c.chase)civ++; else if(c.kind==='parked')park++}
+  for(let i=civ;i<16;i++)spawnTraffic(first?220:650,1300,rnd()<.08);
+  for(let i=park;i<9;i++)spawnParked(first?150:500,1200);
+  for(let i=peds.length;i<26;i++)spawnPed(first?90:480,1150);
+  for(let i=cars.filter(c=>c.chase).length;i<wanted;i++){const c=spawnTraffic(520,900,true);if(c)c.chase=true}
+}
+
+/* ---------- hud ---------- */
+const elMoney=$('money'), elStars=$('stars'), elMission=$('mission'), elToast=$('toast'), elAct=$('act'), elIntro=$('intro');
+let toastT=0, lastMission='';
+const toast=s=>{elToast.textContent=s;elToast.hidden=false;toastT=2.6};
+function hud(){
+  elMoney.textContent=money+' kr';
+  elStars.textContent='★'.repeat(wanted)+'☆'.repeat(4-wanted);
+}
+function addWanted(n,why){wanted=Math.min(4,wanted+n);calm=14;toast(why);hud()}
+function missionTime(m){const a=PLACES[m.from],b=PLACES[m.to];return Math.round((Math.abs(a.x-b.x)+Math.abs(a.y-b.y))/140+10)}
+const curMission=()=>MISSIONS[mi%MISSIONS.length];
+const payOf=m=>Math.round(m.pay*(1+Math.floor(mi/MISSIONS.length)*.5));
+function failMission(why){if(active){active=null;toast(why)}}
+
+/* ---------- driving ---------- */
+function driveFree(c,dt,jx,jy,max){
+  const m=Math.min(1,Math.hypot(jx,jy));
+  if(m>.15){
+    const d=angDiff(Math.atan2(jy,jx),c.a), turn=(2.2+2.4*Math.min(1,Math.abs(c.sp)/150))*dt;
+    c.a+=clamp(d,-turn,turn);
+    const want=max*m*(Math.abs(d)>1.6?.4:1);
+    c.sp+=clamp(want-c.sp,-420*dt,260*dt);
+  } else c.sp*=Math.max(0,1-2.2*dt);
+  const hit=moveCirc(c,Math.cos(c.a)*c.sp*dt,Math.sin(c.a)*c.sp*dt,13);
+  if(hit)c.sp*=Math.max(0,1-6*dt);
+  return hit}
+function blocked(c){
+  const fx=DX[c.dir],fy=DY[c.dir];
+  const test=o=>{const rx=o.x-c.x,ry=o.y-c.y,f=rx*fx+ry*fy,s=Math.abs(rx*fy-ry*fx);return f>4&&f<74&&s<20};
+  if(!c.chase&&test(p))return true;
+  for(const o of cars)if(o!==c&&!(c.chase&&o.kind==='player')&&test(o))return true;
+  return false}
+function driveGrid(c,dt,target,max){
+  const tx=Math.floor(c.x/T),ty=Math.floor(c.y/T),id=tx+ty*W,inter=isCol(tx)&&isRow(ty);
+  if(inter){
+    if(c.lastT!==id){
+      c.lastT=id; let best=c.dir,score=1e9;
+      for(let d=0;d<4;d++){
+        const rev=d===(c.dir+2)%4; if(rev&&!target)continue;
+        const nx=tx+DX[d],ny=ty+DY[d]; if(tile(nx,ny)!==R)continue;
+        const s=target?Math.hypot(nx*T+32-target.x,ny*T+32-target.y)+(rev?150:0):rnd()*10-(d===c.dir?6:0);
+        if(s<score){score=s;best=d}
+      }
+      c.next=best===c.dir?null:best;
+    }
+    if(c.next!==null){
+      const n=c.next, lx=tx*T+(n===1?16:48), ly=ty*T+(n===0?48:16);
+      let go=false;
+      if(n===(c.dir+2)%4)go=true;
+      else if(c.dir===0)go=c.x>=lx; else if(c.dir===2)go=c.x<=lx; else if(c.dir===1)go=c.y>=ly; else go=c.y<=ly;
+      if(go){c.dir=n;c.next=null;if(n%2)c.x=lx;else c.y=ly}
+    }
+  } else {
+    const horiz=isRow(ty);
+    if(horiz&&c.dir%2)c.dir=target&&target.x<c.x?2:0;
+    if(!horiz&&c.dir%2===0)c.dir=target&&target.y<c.y?3:1;
+    if(c.dir%2){const l=tx*T+(c.dir===1?16:48);c.x+=(l-c.x)*Math.min(1,6*dt)}
+    else{const l=ty*T+(c.dir===0?48:16);c.y+=(l-c.y)*Math.min(1,6*dt)}
+  }
+  const want=blocked(c)?0:max;
+  c.sp+=clamp(want-c.sp,-360*dt,170*dt);
+  c.x+=DX[c.dir]*c.sp*dt; c.y+=DY[c.dir]*c.sp*dt;
+  c.a+=angDiff(c.dir*PI/2,c.a)*Math.min(1,10*dt);
+}
+
+/* ---------- player actions ---------- */
+function nearestCar(){let best=null,bd=58;for(const c of cars){if(c.chase)continue;const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<bd){bd=d;best=c}}return best}
+function action(){
+  if(!started)return;
+  if(p.car){
+    const c=p.car; if(Math.abs(c.sp)>70){toast('Brems først');return}
+    for(const s of [1,-1]){const x=c.x+Math.cos(c.a+PI/2)*30*s,y=c.y+Math.sin(c.a+PI/2)*30*s;
+      if(!solidCirc(x,y,8)){p.x=x;p.y=y;break}}
+    c.kind='parked';c.sp=0;p.car=null;return}
+  const c=nearestCar(); if(!c)return;
+  if(c.kind==='civ'){
+    peds.push({x:c.x,y:c.y,gx:c.x,gy:c.y,state:'flee',t:4,color:PED_COLORS[ri(PED_COLORS.length)]});
+    addWanted(c.cop?2:1,c.cop?'Du tok en politibil!':'Biltyveri!');
+  }
+  c.kind='player';c.free=true;p.car=c;
+}
+function busted(){
+  const fine=Math.min(money,100*wanted);
+  money-=fine;wanted=0;bustT=0;
+  for(const c of cars)c.chase=false;
+  if(p.car){p.car.kind='parked';p.car.sp=0;p.car=null}
+  p.x=29.5*T;p.y=13.5*T;
+  failMission('');toast('Arrestert! Bot: '+fine+' kr');hud()}
+
+/* ---------- input ---------- */
+const keys={}; let joy=null;
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;
+  if(e.key==='e'||e.key==='E'||e.key===' '){e.preventDefault();if(!e.repeat)action()}
+  if(e.key.startsWith('Arrow'))e.preventDefault()});
+addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
+const game=$('game');
+game.addEventListener('pointerdown',e=>{
+  if(e.target.closest('button')||!started||joy)return;
+  joy={id:e.pointerId,ox:e.clientX,oy:e.clientY,x:0,y:0};
+  try{game.setPointerCapture(e.pointerId)}catch(_){}
+});
+game.addEventListener('pointermove',e=>{
+  if(!joy||e.pointerId!==joy.id)return;
+  let x=(e.clientX-joy.ox)/48,y=(e.clientY-joy.oy)/48;const m=Math.hypot(x,y);
+  if(m>1){x/=m;y/=m} joy.x=x;joy.y=y});
+const endJoy=e=>{if(joy&&e.pointerId===joy.id)joy=null};
+game.addEventListener('pointerup',endJoy);game.addEventListener('pointercancel',endJoy);
+game.addEventListener('contextmenu',e=>e.preventDefault());
+elAct.addEventListener('click',action);
+$('start').addEventListener('click',()=>{started=true;elIntro.hidden=true});
+function inputVec(){
+  if(!started)return[0,0];
+  if(joy)return[joy.x,joy.y];
+  let x=(keys.arrowright||keys.d?1:0)-(keys.arrowleft||keys.a?1:0), y=(keys.arrowdown||keys.s?1:0)-(keys.arrowup||keys.w?1:0);
+  const m=Math.hypot(x,y); return m?[x/m,y/m]:[0,0]}
+
+/* ---------- update ---------- */
+function update(dt){
+  time+=dt; hitCd-=dt;
+  const [jx,jy]=inputVec();
+  if(p.car){driveFree(p.car,dt,jx,jy,330);p.x=p.car.x;p.y=p.car.y;p.a=p.car.a}
+  else if(jx||jy){moveCirc(p,jx*125*dt,jy*125*dt,8);p.a=Math.atan2(jy,jx)}
+
+  for(const c of cars){
+    if(c.kind==='player')continue;
+    if(c.kind==='parked'){c.sp=0;continue}
+    const tx=Math.floor(c.x/T),ty=Math.floor(c.y/T),onRoad=tile(tx,ty)===R;
+    if(c.chase){
+      const dx=p.x-c.x,dy=p.y-c.y,d=Math.hypot(dx,dy)||1; c.forceGrid-=dt;
+      if(!onRoad||(d<230&&c.forceGrid<=0)){
+        c.free=true;
+        const hit=driveFree(c,dt,dx/d,dy/d,300);
+        c.stuck=hit&&Math.abs(c.sp)<60?c.stuck+dt:0;
+        if(c.stuck>1&&onRoad){c.stuck=0;c.forceGrid=2.5}
+      } else {
+        if(c.free){c.free=false;c.dir=((Math.round(c.a/(PI/2))%4)+4)%4;c.lastT=-1;c.next=null}
+        driveGrid(c,dt,p,285);
+      }
+    } else if(onRoad) driveGrid(c,dt,null,c.cop?130:110);
+    else c.kind='parked';
+  }
+  /* player car against other cars and pedestrians */
+  if(p.car){
+    const me=p.car;
+    for(const c of cars){
+      if(c===me)continue;
+      const dx=me.x-c.x,dy=me.y-c.y,d=Math.hypot(dx,dy);
+      if(d<30&&d>0){
+        moveCirc(me,dx/d*(30-d),dy/d*(30-d),13);
+        if(c.cop&&Math.abs(me.sp)>140&&hitCd<=0){hitCd=2;addWanted(1,'Du krasjet i politiet!')}
+        me.sp*=.6;
+      }
+    }
+    for(const q of peds){
+      if(q.state==='down')continue;
+      if(Math.hypot(q.x-me.x,q.y-me.y)<20){
+        if(Math.abs(me.sp)>90){q.state='down';q.t=4;if(hitCd<=0){hitCd=1.5;addWanted(1,'Påkjørsel!')}}
+        else{q.state='flee';q.t=2}
+      }
+    }
+  }
+  for(const q of peds){
+    if(q.state==='down'){q.t-=dt;if(q.t<=0){q.state='flee';q.t=3}continue}
+    if(q.state==='flee'){
+      q.t-=dt;const dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy)||1;
+      moveCirc(q,dx/d*130*dt,dy/d*130*dt,6);
+      if(q.t<=0){q.state='walk';q.gx=q.x;q.gy=q.y}
+      continue}
+    const dx=q.gx-q.x,dy=q.gy-q.y,d=Math.hypot(dx,dy);
+    if(d<3){
+      const tx=Math.floor(q.x/T),ty=Math.floor(q.y/T),k=ri(4),nx=tx+DX[k],ny=ty+DY[k],t=tile(nx,ny);
+      if(!solidT(t)&&(t!==R||rnd()<.12)){q.gx=nx*T+12+rnd()*40;q.gy=ny*T+12+rnd()*40}
+    } else {q.x+=dx/d*42*dt;q.y+=dy/d*42*dt}
+  }
+
+  /* police */
+  if(wanted>0){
+    let near=1e9; const spd=p.car?Math.abs(p.car.sp):0; let close=false;
+    for(const c of cars)if(c.chase){const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<near)near=d;if(d<54&&spd<45)close=true}
+    if(near<430)calm=14; else calm-=dt;
+    bustT=close?bustT+dt:Math.max(0,bustT-dt*2);
+    if(bustT>1.3)busted();
+    else if(calm<=0){wanted=0;for(const c of cars)c.chase=false;toast('Kysten er klar');hud()}
+  }
+
+  /* missions */
+  const m=curMission();
+  if(started){
+    if(!active){const a=PLACES[m.from];if(Math.hypot(a.x-p.x,a.y-p.y)<52){active={t:missionTime(m)};toast(m.title)}}
+    else{
+      active.t-=dt;const b=PLACES[m.to];
+      if(Math.hypot(b.x-p.x,b.y-p.y)<52){const pay=payOf(m);money+=pay;active=null;mi++;toast('Levert! +'+pay+' kr');hud()}
+      else if(active.t<=0)failMission('For sent! Prøv igjen')
+    }
+  }
+  const mm=curMission();
+  const txt=active?mm.text+' · <b>'+Math.ceil(active.t)+' s</b>':'<b>'+mm.title+'</b> · møt opp ved '+mm.from;
+  if(txt!==lastMission){lastMission=txt;elMission.innerHTML=txt}
+  if(toastT>0){toastT-=dt;if(toastT<=0)elToast.hidden=true}
+  const lab=p.car?'Ut':'Inn', dis=!p.car&&!nearestCar();
+  if(elAct.textContent!==lab)elAct.textContent=lab;
+  if(elAct.disabled!==dis)elAct.disabled=dis;
+
+  upkeep-=dt; if(upkeep<=0){upkeep=.5;maintain(false)}
+}
+
+/* ---------- drawing ---------- */
+const PAL={grass:'#27503f',road:'#2a3038',line:'#69727c',pave:'#59626a',quay:'#7b5f45',park:'#2f6b4c',pitch:'#3b8a55',water:'#12303f',forest:'#173428'};
+const ROOF=['#8c4a4a','#40566b','#6b5a7a','#4f6b62','#8a6d4b'];
+let cw=0,ch=0,dpr=1,zoom=1;
+function resize(){
+  const r=game.getBoundingClientRect(); cw=r.width;ch=r.height;dpr=Math.min(devicePixelRatio||1,2);
+  cv.width=Math.round(cw*dpr);cv.height=Math.round(ch*dpr);zoom=clamp(Math.min(cw,ch)/440,.7,1.5)}
+addEventListener('resize',resize);
+
+function drawTile(x,y){
+  const t=tile(x,y),px=x*T,py=y*T,h=hash(x,y);
+  switch(t){
+    case R:{
+      ctx.fillStyle=PAL.road;ctx.fillRect(px,py,T+1,T+1);ctx.fillStyle=PAL.line;
+      const col=isCol(x),row=isRow(y);
+      if(row&&!col){ctx.fillRect(px+6,py+31,20,2);ctx.fillRect(px+38,py+31,20,2)}
+      else if(col&&!row){ctx.fillRect(px+31,py+6,2,20);ctx.fillRect(px+31,py+38,2,20)}
+      break}
+    case S:ctx.fillStyle=PAL.pave;ctx.fillRect(px,py,T+1,T+1);ctx.fillStyle='rgba(0,0,0,.12)';ctx.fillRect(px,py,T,1);ctx.fillRect(px,py,1,T);break;
+    case Q:ctx.fillStyle=PAL.quay;ctx.fillRect(px,py,T+1,T+1);ctx.fillStyle='rgba(0,0,0,.18)';for(let i=0;i<4;i++)ctx.fillRect(px+i*16,py,1,T);break;
+    case P:{ctx.fillStyle=PAL.park;ctx.fillRect(px,py,T+1,T+1);
+      for(let i=0;i<3;i++){const k=hash(x*7+i,y*13);ctx.fillStyle=i===2?'#1f4a36':'#ff5d8f';ctx.beginPath();ctx.arc(px+8+k%48,py+8+(k>>8)%48,i===2?9:3,0,7);ctx.fill()}
+      break}
+    case PITCH:ctx.fillStyle=(x%2)?PAL.pitch:'#348050';ctx.fillRect(px,py,T+1,T+1);break;
+    case B:{
+      const id=roof[x+y*W];ctx.fillStyle=ROOF[hash(id,7)%ROOF.length];ctx.fillRect(px,py,T+1,T+1);
+      if(h%3===0){ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(px+18+h%16,py+16+(h>>6)%18,14,10)}
+      if(y+1<H&&roof[x+(y+1)*W]!==id){ctx.fillStyle='rgba(0,0,0,.42)';ctx.fillRect(px,py+T-12,T+1,12);
+        ctx.fillStyle='rgba(255,200,87,.55)';if(h&1)ctx.fillRect(px+10,py+T-9,6,5);if(h&2)ctx.fillRect(px+30,py+T-9,6,5);if(h&4)ctx.fillRect(px+48,py+T-9,6,5)}
+      if(roof[x+1+y*W]!==id){ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(px+T-6,py,6,T)}
+      break}
+    case WA:{ctx.fillStyle=PAL.water;ctx.fillRect(px,py,T+1,T+1);ctx.fillStyle='rgba(255,255,255,.07)';
+      ctx.fillRect(px+((h%64)+time*9)%50,py+8+h%40,14,2);ctx.fillRect(px+(((h>>7)%64)+time*6)%50,py+20+(h>>4)%36,10,2);break}
+    case FOREST:ctx.fillStyle=PAL.forest;ctx.fillRect(px,py,T+1,T+1);ctx.fillStyle='#1d4233';ctx.beginPath();ctx.arc(px+14+h%36,py+14+(h>>6)%36,12,0,7);ctx.fill();break;
+    default:ctx.fillStyle=PAL.grass;ctx.fillRect(px,py,T+1,T+1);
+  }
+}
+function drawCar(c){
+  ctx.save();ctx.translate(c.x,c.y);ctx.rotate(c.a);
+  if(c.kind!=='parked'){ctx.fillStyle='rgba(255,214,130,.13)';ctx.beginPath();ctx.moveTo(20,-8);ctx.lineTo(82,-26);ctx.lineTo(82,26);ctx.lineTo(20,8);ctx.fill()}
+  ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(-21,-9,46,24);
+  ctx.fillStyle=c.color;ctx.beginPath();ctx.roundRect(-23,-12,46,24,6);ctx.fill();
+  if(c.cop){ctx.fillStyle='#2b62c4';ctx.fillRect(-23,-3,46,6)}
+  ctx.fillStyle='rgba(13,26,33,.75)';ctx.fillRect(2,-9,9,18);ctx.fillRect(-15,-9,6,18);
+  ctx.fillStyle='#ffe9a8';ctx.fillRect(20,-10,3,5);ctx.fillRect(20,5,3,5);
+  if(c.cop){const on=c.chase&&Math.floor(time*6)%2;ctx.fillStyle=on?'#ff3b5c':'#3b7bff';ctx.fillRect(-5,-6,5,12);
+    if(c.chase){ctx.fillStyle=on?'rgba(255,59,92,.22)':'rgba(59,123,255,.22)';ctx.beginPath();ctx.arc(-2,0,34,0,7);ctx.fill()}}
+  if(c.kind==='player'){ctx.strokeStyle='#ff5d8f';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(-25,-14,50,28,8);ctx.stroke()}
+  ctx.restore();
+}
+function marker(pt,color,label){
+  const r=30+Math.sin(time*4)*5;
+  ctx.strokeStyle=color;ctx.lineWidth=4;ctx.beginPath();ctx.arc(pt.x,pt.y,r,0,7);ctx.stroke();
+  ctx.fillStyle=color;ctx.globalAlpha=.22;ctx.beginPath();ctx.arc(pt.x,pt.y,r,0,7);ctx.fill();ctx.globalAlpha=1;
+  ctx.font='700 15px "Barlow Condensed",sans-serif';ctx.textAlign='center';ctx.fillStyle=color;ctx.fillText(label.toUpperCase(),pt.x,pt.y-r-8);
+}
+function draw(){
+  const s=dpr*zoom, vw=cw/zoom, vh=ch/zoom, camX=p.x-vw/2, camY=p.y-vh/2;
+  ctx.setTransform(s,0,0,s,-camX*s,-camY*s);
+  const x0=Math.floor(camX/T),x1=Math.floor((camX+vw)/T),y0=Math.floor(camY/T),y1=Math.floor((camY+vh)/T);
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)drawTile(x,y);
+  /* landmark names */
+  ctx.font='700 13px "Barlow Condensed",sans-serif';ctx.textAlign='center';ctx.fillStyle='rgba(243,236,224,.55)';
+  for(const n in PLACES){const q=PLACES[n];if(q.x>camX-80&&q.x<camX+vw+80&&q.y>camY-40&&q.y<camY+vh+40)ctx.fillText(n.toUpperCase(),q.x,q.y+52)}
+  const m=curMission(), target=started?(active?PLACES[m.to]:PLACES[m.from]):null, tcol=active?'#ff5d8f':'#ffc857';
+  if(target)marker(target,tcol,active?m.to:'Oppdrag');
+  for(const q of peds){
+    ctx.fillStyle=q.color;ctx.beginPath();
+    if(q.state==='down')ctx.ellipse(q.x,q.y,10,5,.6,0,7);else ctx.arc(q.x,q.y,6,0,7);
+    ctx.fill();ctx.fillStyle='rgba(13,26,33,.6)';ctx.beginPath();ctx.arc(q.x,q.y,2.5,0,7);ctx.fill()}
+  for(const c of cars)drawCar(c);
+  if(!p.car){
+    ctx.fillStyle='#ff5d8f';ctx.beginPath();ctx.arc(p.x,p.y,8,0,7);ctx.fill();
+    ctx.fillStyle='#f3ece0';ctx.beginPath();ctx.arc(p.x+Math.cos(p.a)*5,p.y+Math.sin(p.a)*5,3,0,7);ctx.fill()}
+  /* screen space: pointer to an off-screen target, joystick */
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  if(target){
+    const sx=(target.x-camX)*zoom, sy=(target.y-camY)*zoom, pad=46;
+    if(sx<pad||sx>cw-pad||sy<pad+100||sy>ch-pad){
+      const a=Math.atan2(sy-ch/2,sx-cw/2), ex=clamp(sx,pad,cw-pad), ey=clamp(sy,pad+100,ch-pad-110);
+      ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.fillStyle=tcol;
+      ctx.beginPath();ctx.moveTo(16,0);ctx.lineTo(-10,-11);ctx.lineTo(-4,0);ctx.lineTo(-10,11);ctx.fill();ctx.restore()}
+  }
+  if(joy){
+    ctx.strokeStyle='rgba(243,236,224,.35)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(joy.ox,joy.oy,48,0,7);ctx.stroke();
+    ctx.fillStyle='rgba(255,93,143,.75)';ctx.beginPath();ctx.arc(joy.ox+joy.x*48,joy.oy+joy.y*48,22,0,7);ctx.fill()}
+  /* minimap */
+  mctx.drawImage(miniBase,0,0);
+  if(target){mctx.fillStyle=tcol;mctx.fillRect(target.x/T*2-2,target.y/T*2-2,5,5)}
+  for(const c of cars)if(c.chase){mctx.fillStyle='#5b8cff';mctx.fillRect(c.x/T*2-1,c.y/T*2-1,3,3)}
+  mctx.fillStyle='#fff';mctx.fillRect(p.x/T*2-1.5,p.y/T*2-1.5,4,4);
+}
+const miniBase=document.createElement('canvas');miniBase.width=W*2;miniBase.height=H*2;
+{const g=miniBase.getContext('2d');const col={[R]:'#6b747d',[B]:'#2a3a44',[WA]:'#12303f',[S]:'#3a4750',[P]:'#2f6b4c',[Q]:'#7b5f45',[PITCH]:'#3b8a55'};
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){g.fillStyle=col[map[x+y*W]]||'#27503f';g.fillRect(x*2,y*2,2,2)}}
+
+/* ---------- boot ---------- */
+newCar(24.5*T,19.5*T,0,'parked');newCar(19.5*T,19.5*T,0,'parked');newCar(22.5*T,16.5*T+14,0,'parked');
+let last=0;
+function loop(ts){
+  const dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  update(dt);draw();requestAnimationFrame(loop)}
+function boot(d){
+  if(d&&typeof d.money==='number'){money=d.money;mi=d.mi|0;if(d.started){started=true;elIntro.hidden=true}}
+  resize();maintain(true);hud();requestAnimationFrame(loop)}
+try{window.claude?.hot?.snapshot?.(()=>({money,mi,started}))}catch(_){}
+if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.claude?.hot?.data??{});
+})();
+</script>
+</body>
+</html>
