@@ -47,6 +47,15 @@ body{background:var(--night);color:var(--paper);font-family:var(--ui);font-size:
 .pad:active{filter:brightness(1.3)}
 #act:disabled{border-color:#55636b;color:#7d8a91}
 button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+#up,#down{right:calc(max(18px,env(safe-area-inset-right,0px)) + 118px);width:52px;height:52px;font-size:18px;border-color:var(--sun)}
+#up{bottom:calc(172px + env(safe-area-inset-bottom,0px))}#down{bottom:calc(112px + env(safe-area-inset-bottom,0px))}
+#garage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(13,26,33,.72);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#garage .card{background:var(--night);border:2px solid var(--sun);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:10px;width:min(100%,340px)}
+#garage h2{font-family:var(--display);font-weight:400;font-size:28px;margin:0;color:var(--sun)}
+#garage p{margin:0;line-height:1.3}
+#garage button{font-family:var(--ui);font-weight:700;font-size:18px;padding:12px;border-radius:8px;border:2px solid var(--rose);background:var(--panel);color:var(--paper);cursor:pointer;text-align:left}
+#garage #gOut{background:var(--rose);color:var(--night);text-align:center}
 #joyB,#joyK{position:absolute;left:0;top:0;border-radius:50%;pointer-events:none}
 #joyB{width:96px;height:96px;border:3px solid rgba(243,236,224,.45)}
 #joyK{width:44px;height:44px;background:rgba(255,93,143,.8)}
@@ -70,14 +79,21 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
   <div id="toast" hidden></div>
   <div id="street"></div>
   <div id="joyB" hidden></div><div id="joyK" hidden></div>
+  <button id="up" class="pad" type="button" aria-label="Stig" hidden>▲</button>
+  <button id="down" class="pad" type="button" aria-label="Synk" hidden>▼</button>
   <button id="wpn" class="pad" type="button">Pistol</button>
   <button id="act" class="pad" type="button">Inn</button>
   <button id="fire" class="pad" type="button">Skyt</button>
+  <div id="garage" hidden><div class="card">
+    <h2>Verkstedet</h2><p id="gInfo"></p>
+    <button id="gSpray" type="button"></button><button id="gTune" type="button"></button><button id="gArmor" type="button"></button>
+    <button id="gOut" type="button">Kjør ut</button>
+  </div></div>
   <div id="intro">
     <p class="tag">Åsane · Bergen · sommerkveld</p>
     <h1>Flaktveit <span>Vice</span></h1>
-    <p>Flaktveitgjengen styrer fra senteret til Liavatnet. Kjør lokale kjendiser, rydd unna Ulsetbanden og stikk fra politiet.</p>
-    <p>Dra tommelen på skjermen: opp er fremover, til siden svinger. <b>Inn</b> tar bil eller helikopter, <b>Skyt</b> sikter selv, og knappen over bytter våpen. Tastatur: piltaster, E, mellomrom og Q.</p>
+    <p>Flaktveitgjengen styrer fra E16 til Hjortland. Kjør lokale kjendiser, rydd unna Ulsetbanden og stikk fra politiet.</p>
+    <p>Dra tommelen på skjermen: opp er fremover, til siden svinger. <b>Inn</b> tar bil eller helikopter, <b>Skyt</b> sikter selv, og knappen over bytter våpen. I helikopter styrer ▲ og ▼ høyden. Kjør inn på et verksted for å trimme og lakkere om. Tastatur: piltaster, E, mellomrom, Q, R og F.</p>
     <button id="start" type="button">Start</button>
   </div>
 </div>
@@ -87,8 +103,8 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
 (() => {
 const T=64, W=64, H=34, COAST=24, SHORE=28, PI=Math.PI;
 const COLS=[0,8,15,22,29,36,44,52,63], ROWS=[0,6,12,18,24];
-const COLN=['Åsamyrane','Hesthaugvegen','Rollandslia','Ulsetstemma','Ulsetskogen','Liavegen','Flaktveitsvingene','Blindheimsvegen','Vetenvegen'];
-const ROWN=['Litleåsvegen','Flaktveittræet','Flaktveitleitet','Flaktveitrinden','Flaktveitvegen'];
+const COLN=['Liamyrene','Hesthaugvegen','Rollandslia','Ulsetstemma','Ulsetskogen','Liavegen','Flaktveitsvingene','Blindheimsvegen','Vetenvegen'];
+const ROWN=['E16','Flaktveittræet','Flaktveitleitet','Flaktveitrinden','Flaktveitvegen'];
 const G=0, R=1, B=2, WA=3, S=4, P=5, Q=6, PITCH=7, FOREST=8, HOUSE=9, A=10;
 const DX=[1,0,-1,0], DY=[0,1,0,-1];
 const $=id=>document.getElementById(id);
@@ -102,7 +118,7 @@ const gy=z=>Math.max(0,(COAST+1)*T-z)*.09;          /* the town climbs from the 
 
 /* ---------- town map ---------- */
 const map=new Uint8Array(W*H), bid=new Uint16Array(W*H);
-const KIND=[['res','res','res','res','res','res','res','park'],['res','res','res','res','res','city','res','res'],
+const KIND=[['city','res','res','res','res','res','park','park'],['city','res','res','res','res','city','res','park'],
   ['city','res','res','res','res','city','city','res'],['aro','city','res','park','res','torg','park','city']];
 const blk=(v,arr)=>{let i=0;while(i<arr.length-2&&v>arr[i+1])i++;return i};
 for(let y=0;y<H;y++)for(let x=0;x<W;x++){
@@ -138,7 +154,7 @@ function rayWall(x,y,a,range){const c=Math.cos(a),s=Math.sin(a);let d=0;while(d<
 
 const at=(tx,ty)=>({x:tx*T,y:ty*T});
 const PLACES={'Flaktveit senter':at(40.5,22.5),'Flaktveit skole':at(44.5,18.5),'Flaktveitbanen':at(48.5,24.5),'Blokkene':at(36.5,6.5),
-  'Legevakten':at(36.5,12.5),'Vetenstien':at(52.5,.5),'Liavatnet':at(29.5,26.5),'Badeplassen':at(40.5,26.5),'Åsane terminal':at(4.5,22.5),
+  'Legevakten':at(36.5,12.5),'Vetenstien':at(52.5,.5),'Hjortland':at(29.5,26.5),'Badeplassen':at(40.5,26.5),'Åsane terminal':at(4.5,22.5),
   'Åsane Storsenter':at(8.5,24.5),'Åsane Arena':at(8.5,12.5),'Ulset':at(22.5,12.5),'Politiposten':at(36.5,24.5),'Helikopterplassen':at(22.5,26.5),'Blindheim':at(52.5,18.5)};
 const MISSIONS=[
   {title:'Pizza til gjengen',from:'Flaktveit senter',to:'Blokkene',text:'Gjengen i Blokkene er sultne. Lever pizzaene varme',pay:150},
@@ -151,16 +167,21 @@ const MISSIONS=[
   {title:'Kongen av Stemma',from:'Flaktveit senter',to:'Åsane terminal',boss:'Kongen av Stemma',hit:true,text:'Sjefen for Ulsetbanden står ved Åsane terminal med livvakter. Gjør slutt på det',pay:900}
 ];
 const WPN=[{name:'Pistol',ammo:Infinity,cd:.34,dmg:15,range:430},{name:'Uzi',ammo:0,cd:.085,dmg:8,range:390},
-  {name:'RPG',ammo:0,cd:1.1,range:560},{name:'Granat',ammo:0,cd:.8,range:300}];
+  {name:'RPG',ammo:0,cd:1.1,range:560},{name:'Granat',ammo:0,cd:.8,range:300},{name:'Missil',ammo:Infinity,cd:.4,range:720},{name:'Kanon',ammo:Infinity,cd:.9,range:680}];
 const PADS=[at(22.5,26.5),at(4.5,21.5)];
 const PICK=[['Uzi',24.5,26.5],['Uzi',10.5,13.5],['Uzi',46.5,19.5],['RPG',53.5,19.5],['RPG',38.5,1.5],['Granat',3.5,22.5],
   ['Granat',29.5,26.5],['Granat',50.5,9.5],['Helse',37.5,14.5],['Helse',20.5,20.5],['Helse',5.5,7.5],['Helse',45.5,26.5]];
+const GARAGES=[at(33.5,26.5),at(6.5,23.2)], TANKS=[at(2.5,21.5),at(55.5,26.5)];
 
 /* ---------- state ---------- */
 const p={x:42.5*T,y:21.5*T,a:PI/2,car:null,hp:100,walk:false,anim:0,aimT:0};
 let cars=[], peds=[], officers=[], shots=[], pickups=[], polHeli=null, polCd=0, heliBack=[];
 let money=0, wanted=0, calm=0, bustT=0, mi=0, active=null, started=false, time=0, upkeep=0, hitCd=0, crimeCd=0;
-let cur=0, fireCd=0, fireHeld=false, lastWarn=-9;
+let cur=0, fireCd=0, fireHeld=false, lastWarn=-9, paused=false, garageCd=0, altHold=0;
+const MODELS=['std','std','sport','suv','muscle'];
+const avail=k=>k<4?WPN[k].ammo>0:!!p.car&&(k===4?!!p.car.heli:!!p.car.tank);
+const carMax=c=>(c.tank?175:c.model==='sport'?440:c.model==='suv'?300:c.model==='muscle'?370:330)*(1+.12*(c.tune||0));
+const lowSolid=(x,y)=>{const t=tile(Math.floor(x/T),Math.floor(y/T));return t===B||t===HOUSE};
 const CAR_COLORS=['#c94f4f','#d9a441','#4f8fc9','#7bbf8e','#d8d4c8','#9a6fc4','#e07b39','#2f4858'];
 const SHIRTS=['#d95d39','#3d7ea6','#e8c547','#7a9e7e','#b56576','#f2f2f2','#5b5f97'], PANTS=['#2b3a4a','#4a4038','#3b3f46','#6b7a8f'];
 const palt=()=>p.car&&p.car.heli?p.car.alt:0;
@@ -177,8 +198,10 @@ function roadSpot(minD,maxD){
   return null}
 function newCar(x,y,a,kind,cop){
   const c={x,y,a,sp:0,kind,cop:!!cop,chase:false,color:cop?'#eef1f4':CAR_COLORS[ri(CAR_COLORS.length)],hp:cop?140:100,
-    dir:0,lastT:-1,next:null,free:false,forceGrid:0,stuck:0,crew:0,panic:0,alt:0};
+    dir:0,lastT:-1,next:null,free:false,forceGrid:0,stuck:0,crew:0,panic:0,alt:0,model:cop?'std':MODELS[ri(MODELS.length)],tune:0,armor:0};
+  if(c.model==='suv')c.hp=150;
   cars.push(c);return c}
+function newTank(pad){const c=newCar(pad.x,pad.y,0,'parked');c.tank=true;c.keep=true;c.pad=pad;c.hp=900;c.color='#5a683c';c.model='tank';return c}
 function newHeli(pad){const c=newCar(pad.x,pad.y,-PI/2,'parked');c.heli=true;c.keep=true;c.pad=pad;c.hp=170;c.color='#e2b93b';return c}
 function spawnTraffic(minD,maxD,cop){
   const s=roadSpot(minD,maxD); if(!s)return null;
@@ -252,7 +275,7 @@ function blowCar(c){
   if(mine)p.car=null;
   if(c.cop){wanted=Math.min(5,wanted+1);calm=14;toast('Politibil sprengt!');hud()}
   c.chase=false;c.sp=0;
-  if(c.heli){c.dead=true;if(c.pad)heliBack.push({pad:c.pad,t:30})} else {c.kind='wreck';c.wt=25;burn(c)}
+  if(c.heli){c.dead=true;if(c.pad)heliBack.push({pad:c.pad,t:30})} else {c.kind='wreck';c.wt=25;c.keep=false;burn(c);if(c.tank&&c.pad)heliBack.push({pad:c.pad,t:60,tank:1})}
   if(c.target&&active&&active.van===c)winMission();
   explode(c.x,c.y,(c.alt||0)+8);
   if(mine)hurtPlayer(high?200:45)}
@@ -287,12 +310,12 @@ function gunNoise(){
   if(wanted===0)for(const c of cars)if(c.cop&&c.kind==='civ'&&Math.hypot(c.x-p.x,c.y-p.y)<520){crime(1,'Politiet hørte skudd!');break}
 }
 function fire(){
-  let w=WPN[cur]; if(w.ammo<=0){cur=0;w=WPN[0];hud()}
+  if(!avail(cur)){cur=0;hud()} const w=WPN[cur];
   const veh=p.car, heli=veh&&veh.heli, h0=palt()+14;
-  if(veh&&!heli&&cur>1){if(time-lastWarn>2){lastWarn=time;toast('Gå ut av bilen for å bruke '+w.name)}return}
+  if(veh&&!heli&&(cur===2||cur===3)){if(time-lastWarn>2){lastWarn=time;toast('Gå ut av bilen for å bruke '+w.name)}return}
   fireCd=w.cd; if(w.ammo!==Infinity)w.ammo--; hud();
   const t=aim(w.range,!!veh), a=t?Math.atan2(t.o.y-p.y,t.o.x-p.x):p.a, ca=Math.cos(a), sa=Math.sin(a);
-  if(!veh)p.a=a; p.aimT=.6; sfx('shot'); gunNoise();
+  if(!veh)p.a=a; else{veh.aimA=a;veh.aimT=1.2} p.aimT=.6; sfx('shot'); gunNoise();
   if(cur<2){
     let d=heli?w.range:rayWall(p.x,p.y,a,w.range), hit=false;
     if(t&&(heli||t.alt>60||t.d<d)){d=t.d;hit=true}
@@ -303,7 +326,7 @@ function fire(){
     else if(t.type==='car')hurtCar(o,w.dmg);
     else if(t.type==='ph'){o.hp-=w.dmg;ensureWanted(3,'')}
     else {o.state='dead';o.t=6;crime(1,'Du skjøt en sivil!')}
-  } else if(cur===2){
+  } else if(cur!==3){
     const d=t?t.d:520, tm=d/580;
     shots.push({k:'r',x:p.x+ca*10,y:p.y+sa*10,h:h0,vx:ca*580,vy:sa*580,vh:((t?t.alt+8:8)-h0)/tm,life:tm+.04,a});
   } else {
@@ -325,12 +348,16 @@ function driveFree(c,dt,jx,jy,max,rev){
   return hit}
 function flyHeli(c,dt,jx,jy){
   const m=Math.min(1,Math.hypot(jx,jy)), ground=c.alt<45;
+  if(altHold){c.tAlt=clamp(c.alt+altHold*45,30,560);c.landing=false}
   if(m>.15){const d=angDiff(Math.atan2(jy,jx),c.a);c.a+=clamp(d,-2.4*dt,2.4*dt);c.sp+=clamp((ground?90:410)*m-c.sp,-300*dt,220*dt)}
   else c.sp*=Math.max(0,1-1.6*dt);
   const vx=Math.cos(c.a)*c.sp*dt, vy=Math.sin(c.a)*c.sp*dt;
-  if(ground){if(moveCirc(c,vx,vy,16))c.sp*=.5}else{c.x=clamp(c.x+vx,-900,W*T+900);c.y=clamp(c.y+vy,-900,H*T+1300)}
+  if(ground){if(moveCirc(c,vx,vy,16))c.sp*=.5}
+  else{const nx=clamp(c.x+vx,-900,W*T+900), ny=clamp(c.y+vy,-900,H*T+1300);
+    if(c.alt<135&&lowSolid(nx,ny))c.sp*=.3; else{c.x=nx;c.y=ny}}
   if(c.landing&&c.alt>45&&solidCirc(c.x,c.y,18)){c.landing=false;toast('Finn et åpent sted å lande')}
-  c.alt+=clamp((c.landing?0:300)-c.alt,-95*dt,120*dt);
+  let want=c.landing?0:(c.tAlt||220); if(!ground&&lowSolid(c.x,c.y))want=Math.max(want,140);
+  c.alt+=clamp(want-c.alt,-110*dt,130*dt);
 }
 function blocked(c){
   const fx=DX[c.dir],fy=DY[c.dir];
@@ -389,9 +416,11 @@ function action(){
     addWanted(c.cop?2:1,c.cop?'Du tok en politibil!':'Biltyveri!');
   }
   c.kind='player';c.free=true;c.landing=false;p.car=c;
-  if(c.heli)toast('Helikopter! Trykk Ut for å lande');
+  if(c.heli){c.tAlt=220;cur=4;toast('Helikopter! Skyt sender missiler')}
+  else if(c.tank){cur=5;addWanted(2,'Du tok en stridsvogn!')}
+  hud();
 }
-function nextWeapon(){for(let i=1;i<=4;i++){const k=(cur+i)%4;if(WPN[k].ammo>0){cur=k;break}}hud()}
+function nextWeapon(){for(let i=1;i<=6;i++){const k=(cur+i)%6;if(avail(k)){cur=k;break}}hud()}
 function busted(){
   const fine=Math.min(money,100*wanted);
   money-=fine;wanted=0;bustT=0;clearPolice();
@@ -399,14 +428,33 @@ function busted(){
   p.x=35.5*T;p.y=23.5*T; for(let i=1;i<4;i++)WPN[i].ammo=0; cur=0;
   failMission('');toast('Arrestert! Bot: '+fine+' kr');hud()}
 
+/* ---------- garage ---------- */
+const elGar=$('garage'), gInfo=$('gInfo'), gSpray=$('gSpray'), gTune=$('gTune'), gArmor=$('gArmor'); let gMsg='';
+const sprayCost=()=>100+150*wanted;
+function garageText(){const c=p.car;if(!c)return;
+  gInfo.textContent='Du har '+money+' kr.'+(gMsg?' '+gMsg:'');
+  gSpray.textContent=(wanted?'Lakker om og mist politiet':'Ny lakk')+' · '+sprayCost()+' kr';
+  gTune.textContent=c.tune<3?'Trim motoren (nivå '+(c.tune+1)+' av 3) · '+300*(c.tune+1)+' kr':'Motoren er fullt trimmet';
+  gArmor.textContent=c.armor<3?'Panser og reparasjon (nivå '+(c.armor+1)+' av 3) · 250 kr':'Fullt pansret';
+  gTune.disabled=c.tune>=3;gArmor.disabled=c.armor>=3}
+function rebuild(c){if(c.m)scene.remove(c.m);c.m=null;c.bar=null}
+function pay(cost){if(money<cost){gMsg='Det har du ikke råd til.';return false}money-=cost;gMsg='';return true}
+function openGarage(){paused=true;p.car.sp=0;joy=null;fireHeld=false;gMsg='';garageText();elGar.hidden=false}
+gSpray.addEventListener('click',()=>{const c=p.car;if(c&&pay(sprayCost())){let n;do{n=CAR_COLORS[ri(CAR_COLORS.length)]}while(n===c.color);
+  c.color=n;c.cop=false;wanted=0;bustT=0;clearPolice();rebuild(c);gMsg='Ny lakk. Politiet kjenner deg ikke igjen.';hud()}garageText()});
+gTune.addEventListener('click',()=>{const c=p.car;if(c&&c.tune<3&&pay(300*(c.tune+1))){c.tune++;rebuild(c);gMsg='Motoren er trimmet.';hud()}garageText()});
+gArmor.addEventListener('click',()=>{const c=p.car;if(c&&c.armor<3&&pay(250)){c.armor++;c.hp=(c.model==='suv'?150:100)+100*c.armor;gMsg='Bilen er pansret og reparert.';hud()}garageText()});
+$('gOut').addEventListener('click',()=>{paused=false;garageCd=5;elGar.hidden=true});
+
 /* ---------- input ---------- */
 const keys={}; let joy=null;
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=true;
   if(k==='e'){if(!e.repeat)action()}
   if(k==='q'){if(!e.repeat)nextWeapon()}
+  if(k==='r')altHold=1; if(k==='f')altHold=-1;
   if(k===' '){e.preventDefault();fireHeld=true}
   if(k.startsWith('arrow'))e.preventDefault()});
-addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys[k]=false;if(k===' ')fireHeld=false});
+addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys[k]=false;if(k===' ')fireHeld=false;if(k==='r'||k==='f')altHold=0});
 game.addEventListener('pointerdown',e=>{
   if(e.target.closest('button')||!started||joy)return;
   joy={id:e.pointerId,ox:e.clientX,oy:e.clientY,x:0,y:0};
@@ -424,6 +472,9 @@ elWpn.addEventListener('click',nextWeapon);
 const fb=$('fire');
 fb.addEventListener('pointerdown',e=>{fireHeld=true;try{fb.setPointerCapture(e.pointerId)}catch(_){}});
 for(const ev of ['pointerup','pointercancel','lostpointercapture'])fb.addEventListener(ev,()=>{fireHeld=false});
+for(const [id,v] of [['up',1],['down',-1]]){const b=$(id);
+  b.addEventListener('pointerdown',e=>{altHold=v;try{b.setPointerCapture(e.pointerId)}catch(_){}});
+  for(const ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,()=>{altHold=0})}
 $('start').addEventListener('click',()=>{started=true;elIntro.hidden=true;if(!ac)initAudio()});
 function rawVec(){
   if(!started)return[0,0];
@@ -437,7 +488,7 @@ function update(dt){
   time+=dt; hitCd-=dt; crimeCd-=dt; fireCd-=dt; p.aimT-=dt; polCd-=dt;
   const [jx,jy]=inputVec(); p.walk=!!(jx||jy);
   if(p.car){
-    if(p.car.heli)flyHeli(p.car,dt,jx,jy); else driveFree(p.car,dt,jx,jy,330,true);
+    if(p.car.heli)flyHeli(p.car,dt,jx,jy); else driveFree(p.car,dt,jx,jy,carMax(p.car),true);
     p.x=p.car.x;p.y=p.car.y;p.a=p.car.a}
   else if(p.walk){moveCirc(p,jx*125*dt,jy*125*dt,8);if(p.aimT<=0)p.a=Math.atan2(jy,jx);p.anim+=dt}
   if(fireHeld&&started&&fireCd<=0)fire();
@@ -473,6 +524,7 @@ function update(dt){
     for(const c of cars){
       if(c===me||c.dead||c.alt>30)continue;
       const dx=me.x-c.x,dy=me.y-c.y,d=Math.hypot(dx,dy);
+      if(me.tank){if(d<40&&c.kind!=='wreck'&&Math.abs(me.sp)>30&&time-(c.crushT||0)>.4){c.crushT=time;hurtCar(c,70)}continue}
       if(d<30&&d>0){
         moveCirc(me,dx/d*(30-d),dy/d*(30-d),13);
         if(c.cop&&c.kind==='civ'&&Math.abs(me.sp)>140&&hitCd<=0){hitCd=2;addWanted(1,'Du krasjet i politiet!')}
@@ -550,7 +602,7 @@ function update(dt){
     if(bustT>1.3)busted();
     else if(calm<=0){wanted=0;clearPolice();toast('Kysten er klar');hud()}
   }
-  for(const h of heliBack){h.t-=dt;if(h.t<=0)newHeli(h.pad)}
+  for(const h of heliBack){h.t-=dt;if(h.t<=0)(h.tank?newTank:newHeli)(h.pad)}
   heliBack=heliBack.filter(h=>h.t>0);
   /* pickups */
   for(const k of pickups){
@@ -581,9 +633,13 @@ function update(dt){
   if(elAct.textContent!==lab)elAct.textContent=lab;
   if(elAct.disabled!==dis)elAct.disabled=dis;
   const tx=Math.floor(p.x/T),ty=Math.floor(p.y/T);
-  const st=tile(tx,ty)===R?(isRow(ty)?ROWN[ROWS.indexOf(ty)]:COLN[COLS.indexOf(tx)]):ty>COAST?'Liavatnet':tx<15?'Åsane sentrum':tx<36?'Ulset':ty<12?'Flaktveitlia':'Flaktveit';
+  const st=tile(tx,ty)===R?(isRow(ty)?ROWN[ROWS.indexOf(ty)]:COLN[COLS.indexOf(tx)]):ty>COAST?'Hjortland':tx<8?'Liamyrene':tx<15?'Åsane sentrum':tx<36?'Ulset':ty<12?'Flaktveitlia':'Flaktveit';
   if(st!==lastStreet){lastStreet=st;elStreet.textContent=st}
 
+  if(cur>3&&!avail(cur)){cur=0;hud()}
+  const inHeli=!!(p.car&&p.car.heli);if($('up').hidden===inHeli)$('up').hidden=$('down').hidden=!inHeli;
+  garageCd-=dt;
+  if(p.car&&!p.car.heli&&!p.car.tank&&garageCd<=0&&Math.abs(p.car.sp)<170)for(const q of GARAGES)if(Math.hypot(q.x-p.x,q.y-p.y)<36){openGarage();break}
   upkeep-=dt; if(upkeep<=0){upkeep=.5;maintain(false)}
 }
 
@@ -650,6 +706,7 @@ let cw=0,ch=0,camYaw=-PI/2;
     else{fill('#b4b6b1');g.fillStyle='rgba(0,0,0,.09)';for(let i=0;i<4;i++){g.fillRect(px+i*16,py,1.5,T);g.fillRect(px,py+i*16,T,1.5)}
       g.fillStyle='#dcddd8';if(tile(x,y-1)===R)g.fillRect(px,py,T,4);if(tile(x,y+1)===R)g.fillRect(px,py+T-4,T,4);if(tile(x-1,y)===R)g.fillRect(px,py,4,T);if(tile(x+1,y)===R)g.fillRect(px+T-4,py,4,T)}
   }
+  for(const q of GARAGES){g.fillStyle='#e8a13a';g.fillRect(q.x-44,q.y-38,88,76);g.fillStyle='#3d4248';for(let i=0;i<6;i++)g.fillRect(q.x-44+i*16,q.y-38,8,76)}
   for(const pd of PADS){g.strokeStyle='#ffd23f';g.lineWidth=6;g.beginPath();g.arc(pd.x,pd.y,40,0,7);g.stroke();
     g.fillStyle='#ffd23f';g.font='700 46px sans-serif';g.textAlign='center';g.fillText('H',pd.x,pd.y+16)}
   const tex=new THREE.CanvasTexture(gc); tex.anisotropy=renderer.capabilities.getMaxAnisotropy();
@@ -746,23 +803,33 @@ let cw=0,ch=0,camYaw=-PI/2;
 }
 /* vehicles and people */
 const GEO={body:new THREE.BoxGeometry(46,10,24),cabin:new THREE.BoxGeometry(22,9,20),van:new THREE.BoxGeometry(34,18,23),wheel:new THREE.CylinderGeometry(4.8,4.8,3.8,12).rotateX(PI/2),bump:new THREE.BoxGeometry(47.6,3.4,21),roof:new THREE.BoxGeometry(20.5,1.6,20.8),lamp:new THREE.BoxGeometry(2,4,5),
-  stripe:new THREE.BoxGeometry(46.6,3,24.6),bar:new THREE.BoxGeometry(5,3,14),
+  stripe:new THREE.BoxGeometry(46.6,3,24.6),tHull:new THREE.BoxGeometry(54,12,26),tTrack:new THREE.BoxGeometry(58,12,7),tTur:new THREE.BoxGeometry(24,9,20),tGun:new THREE.CylinderGeometry(1.9,1.9,34,8).rotateZ(PI/2),
+  spoil:new THREE.BoxGeometry(3,1.4,23),post:new THREE.BoxGeometry(1.5,4,1.5),scoop:new THREE.BoxGeometry(9,2.6,9),stripeTop:new THREE.BoxGeometry(46.4,.6,5),glow:new THREE.BoxGeometry(47,.8,27),bar:new THREE.BoxGeometry(5,3,14),
   hBody:new THREE.BoxGeometry(40,17,17),hNose:new THREE.BoxGeometry(12,11,14),hTail:new THREE.BoxGeometry(34,4,4),hFin:new THREE.BoxGeometry(6,12,2),hSkid:new THREE.BoxGeometry(38,2,2),hRotor:new THREE.BoxGeometry(92,1,6),
   leg:new THREE.BoxGeometry(3.4,11,3.8),torso:new THREE.BoxGeometry(5,10,9.4),arm:new THREE.BoxGeometry(2.8,9.5,2.8),head:new THREE.BoxGeometry(5,5.4,5),
   hood:new THREE.BoxGeometry(5.4,6.4,6),mask:new THREE.BoxGeometry(2.2,2.6,5.2),pack:new THREE.BoxGeometry(3.4,8,7),cap:new THREE.BoxGeometry(5.6,1.6,5.6),brim:new THREE.BoxGeometry(2.6,.8,5),
   gun:new THREE.BoxGeometry(1,1,1),rocket:new THREE.BoxGeometry(12,3,3),nade:new THREE.SphereGeometry(3,8,6),crate:new THREE.BoxGeometry(12,12,12)};
-const MAT={glass:lam(0x1c2b34),tyre:lam(0x14181c),front:bas(0xffe9a8),rear:bas(0xff4b4b),blue:lam(0x2b62c4),skin:lam(0xe8c39e),burnt:lam(0x191a1c),gun:lam(0x23262a)};
+const MAT={glass:lam(0x1c2b34),tyre:lam(0x14181c),front:bas(0xffe9a8),rear:bas(0xff4b4b),blue:lam(0x2b62c4),skin:lam(0xe8c39e),burnt:lam(0x191a1c),neon:bas(0xff5d8f),white:lam(0xf2f2ee),gun:lam(0x23262a)};
 function carMesh(c){
   const g=new THREE.Group();
   if(c.heli){
     part(g,GEO.hBody,cm(c.color),0,13,0,1);part(g,GEO.hNose,MAT.glass,24,11,0);part(g,GEO.hTail,cm(c.color),-36,16,0);part(g,GEO.hFin,cm(c.color),-52,21,0);
     for(const z of [-9,9])part(g,GEO.hSkid,MAT.tyre,0,1.5,z);
     c.rotor=part(g,GEO.hRotor,MAT.tyre,0,24,0);const r2=new THREE.Mesh(GEO.hRotor,MAT.tyre);r2.rotation.y=PI/2;c.rotor.add(r2);
+  } else if(c.tank){
+    part(g,GEO.tHull,cm(c.color),0,12,0,1);for(const z of [-15,15])part(g,GEO.tTrack,MAT.tyre,0,6,z);
+    c.turret=new THREE.Group();c.turret.position.set(-3,18,0);g.add(c.turret);
+    part(c.turret,GEO.tTur,cm('#4a5733'),0,4.5,0,1);part(c.turret,GEO.tGun,MAT.gun,26,5,0);
   } else {
-    part(g,GEO.body,cm(c.color),0,10,0,1);part(g,GEO.bump,MAT.tyre,0,6,0);
-    if(c.van)part(g,GEO.van,cm(c.color),-6,24,0,1); else {part(g,GEO.cabin,MAT.glass,-3,19,0,1);part(g,GEO.roof,cm(c.color),-3,24,0)}
-    for(const x of [-14,14])for(const z of [-11.4,11.4])part(g,GEO.wheel,MAT.tyre,x,4.8,z);
-    for(const z of [-8,8]){part(g,GEO.lamp,MAT.front,23.2,10,z);part(g,GEO.lamp,MAT.rear,-23.2,10,z)}
+    const sport=c.model==='sport', suv=c.model==='suv', by=suv?13:sport?9:10, cx=sport?-5:-3, cy=suv?24.5:sport?16:19;
+    part(g,GEO.body,cm(c.color),0,by,0,1).scale.y=suv?1.5:sport?.8:1;part(g,GEO.bump,MAT.tyre,0,6,0);
+    if(c.van)part(g,GEO.van,cm(c.color),-6,24,0,1);
+    else{part(g,GEO.cabin,MAT.glass,cx,cy,0,1).scale.y=sport?.7:1;part(g,GEO.roof,cm(c.color),cx,cy+(sport?3.7:5),0)}
+    for(const x of [-14,14])for(const z of [-11.4,11.4])part(g,GEO.wheel,MAT.tyre,x,suv?6:4.8,z).scale.setScalar(suv?1.3:1);
+    for(const z of [-8,8]){part(g,GEO.lamp,MAT.front,23.2,by,z);part(g,GEO.lamp,MAT.rear,-23.2,by,z)}
+    if(sport||c.tune>0){const sy=by+(sport?7:9);part(g,GEO.spoil,cm(c.color),-21,sy,0);for(const z of [-8,8])part(g,GEO.post,MAT.tyre,-21,sy-2.5,z)}
+    if(c.model==='muscle'){part(g,GEO.scoop,MAT.tyre,13,16,0);part(g,GEO.stripeTop,MAT.white,0,15.1,0)}
+    if(c.tune>1)part(g,GEO.glow,MAT.neon,0,1.2,0);
     if(c.cop){part(g,GEO.stripe,MAT.blue,0,10,0);c.bar=part(g,GEO.bar,bas(0x3b7bff),-3,25,0)}
   }
   scene.add(g);return g}
@@ -788,6 +855,10 @@ function polHeliMesh(){const c={heli:true,color:'#1d3557'};const m=carMesh(c);po
 for(let i=0;i<3;i++){const s=human('#1f5a36',PANTS[i],{hood:i!==1,cap:i===1?'#1f5a36':0});s.position.set((41.6+i*.5)*T,gy(20.6*T),(20.5+i%2*.4)*T);s.rotation.y=-PI/2+i*.5}
 const giver=human('#e8c547','#3b3f46',{cap:'#b03a48'}), giverLab={}; let giverName='';
 for(const pd of PADS)newHeli(pd);
+for(const q of TANKS)newTank(q);
+for(const q of GARAGES){const b=gy(q.y);
+  for(const [ox,oz] of [[-40,-34],[40,-34],[-40,34],[40,34]])box(5,44,5,lam(0x6f777e),q.x+ox,b+22,q.y+oz);
+  box(96,6,84,lam(0xd98b2b),q.x,b+47,q.y);scene.add(label('Verksted',q.x,b+66,q.y,90,false))}
 for(const [k,tx,ty] of PICK){
   const x=tx*T,y=ty*T,g=new THREE.Group();
   part(g,GEO.crate,lam(k==='Helse'?0xd94a4a:k==='Uzi'?0x4a5560:k==='RPG'?0x55703a:0x3d5a34),0,12,0);
@@ -822,6 +893,7 @@ function draw(dt){
     if(!c.m){c.m=carMesh(c);if(c.kind==='wreck')burn(c)}
     c.m.position.set(c.x,gy(c.y)+(c.alt||0),c.y);c.m.rotation.y=-c.a;
     if(c.bar&&c.kind!=='wreck')c.bar.material.color.setHex(c.chase&&Math.floor(time*6)%2?0xff3b5c:0x3b7bff);
+    if(c.turret){c.aimT-=dt;c.turret.rotation.y=c.aimT>0?-(c.aimA-c.a):0}
     if(c.heli){if(c.kind==='player'||c.alt>1)c.rotor.rotation.y+=dt*26;c.m.rotation.z=-clamp(c.sp/410,-1,1)*.22}
   }
   for(const q of peds){
@@ -842,7 +914,7 @@ function draw(dt){
   }
   for(const k of pickups){k.m.visible=k.t<=0;k.m.children[0].rotation.y+=dt*2;k.m.children[0].position.y=12+Math.sin(time*3+k.x)*2}
   me.visible=!p.car;me.position.set(p.x,gy(p.y),p.y);me.rotation.y=-p.a;pose(me,p.walk,p.anim,p.aimT>0);
-  if(gunShown!==cur){gunShown=cur;const g=me.userData.gun,[w,l,c]=GUNS[cur];g.scale.set(w,l,w);g.position.y=-9.5-l/2;g.material.color.setHex(c)}
+  if(gunShown!==cur&&cur<4){gunShown=cur;const g=me.userData.gun,[w,l,c]=GUNS[cur];g.scale.set(w,l,w);g.position.y=-9.5-l/2;g.material.color.setHex(c)}
   for(const b of booms)if(b.t>0){b.t-=dt;const k=1-b.t/.6;b.m.scale.setScalar(16+k*105);b.m.material.opacity=1-k;b.m.material.color.setHex(k<.25?0xfff0a0:0xff7a20);if(b.t<=0)b.m.visible=false}
   for(const t of tracers)if(t.t>0){t.t-=dt;if(t.t<=0)t.l.visible=false}
   for(const s of smokes)if(s.t>0){s.t-=dt;const k=1-s.t/1.7;s.m.position.y+=42*dt;s.m.scale.setScalar(18+k*55);s.m.material.opacity=(1-k)*.6;if(s.t<=0)s.m.visible=false}
@@ -882,6 +954,7 @@ function draw(dt){
     joyB.style.transform='translate('+(x-48)+'px,'+(y-48)+'px)';joyK.style.transform='translate('+(x+joy.x*48-22)+'px,'+(y+joy.y*48-22)+'px)'}
   /* minimap */
   mctx.drawImage(miniBase,0,0);
+  mctx.fillStyle='#ff9d3b';for(const q of GARAGES)mctx.fillRect(q.x/T*2-1.5,q.y/T*2-1.5,4,4);
   mctx.fillStyle='#7fe3ff';for(const c of cars)if(c.heli&&c.kind!=='player')mctx.fillRect(c.x/T*2-1,c.y/T*2-1,3,3);
   if(target){mctx.fillStyle=active?'#ff5d8f':'#ffc857';mctx.fillRect(target.x/T*2-2,target.y/T*2-2,5,5)}
   mctx.fillStyle='#3d6dff';for(const c of cars)if(c.chase)mctx.fillRect(c.x/T*2-1,c.y/T*2-1,3,3);
@@ -897,7 +970,7 @@ newCar(41.5*T,23.5*T,0,'parked');newCar(43.5*T,21.5*T,PI/2,'parked');newCar(37.5
 let last=0;
 function loop(ts){
   const dt=Math.min(.05,(ts-last)/1000||0);last=ts;
-  update(dt);draw(dt);requestAnimationFrame(loop)}
+  if(!paused)update(dt);draw(dt);requestAnimationFrame(loop)}
 function boot(d){
   if(d&&typeof d.money==='number'){money=d.money;mi=d.mi|0;if(d.started){started=true;elIntro.hidden=true}}
   resize();maintain(true);hud();requestAnimationFrame(loop)}
